@@ -1,0 +1,6 @@
+{
+  "name": "StemFlow AI - Stem Separation & Intelligent MIDI Transcription",
+  "description": "Multi-model stem separation, audio feature extraction, Gemini functional role analysis, adaptive transcription routing, and aligned MIDI workstation.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
