@@ -29,17 +29,17 @@ export interface PipelineStep {
 const PIPELINE_STEPS: PipelineStep[] = [
   {
     id: 1,
-    title: 'Input Audio',
-    shortDesc: 'Song upload or recording loaded into memory',
+    title: 'Input Audio Ingestion',
+    shortDesc: 'Master audio loaded and decoded in Web Audio context',
     icon: Layers,
-    techBadge: 'PCM / Web Audio',
+    techBadge: 'Web Audio PCM',
   },
   {
     id: 2,
-    title: 'Ensemble Stem Separation',
-    shortDesc: 'HTDemucs v4 + BS/Mel-RoFormer + MDX-Drums pass',
+    title: 'Multi-Band DSP Stem Separation',
+    shortDesc: 'Frequency crossover filter graph & formant isolation',
     icon: Layers,
-    techBadge: 'HTDemucs + RoFormer',
+    techBadge: 'DSP Crossover Matrix',
   },
   {
     id: 3,
@@ -58,7 +58,7 @@ const PIPELINE_STEPS: PipelineStep[] = [
   {
     id: 5,
     title: 'Adaptive Routing Logic',
-    shortDesc: 'CREPE bass, Basic Pitch lead, Chord texture, Drum onsets',
+    shortDesc: 'YIN bass, salience lead, chord texture, drum onsets',
     icon: GitFork,
     techBadge: 'Role-Based Routing',
   },

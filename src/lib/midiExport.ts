@@ -98,13 +98,15 @@ export function generateMidiFile(
   const stemChannels: Record<StemType, number> = {
     vocals: 0,
     bass: 1,
+    guitar: 2,
+    piano: 3,
+    other: 4,
     drums: 9, // Channel 10 in 1-based indexing for General MIDI drums
-    other: 2,
   };
 
   const stemsToInclude: StemType[] = trackFilter 
     ? [trackFilter] 
-    : (['drums', 'bass', 'other', 'vocals'] as StemType[]);
+    : (['drums', 'bass', 'guitar', 'piano', 'other', 'vocals'] as StemType[]);
 
   const tracksBytes: number[][] = [];
 
@@ -154,7 +156,9 @@ export function generateMidiFile(
     let programNumber = 0;
     if (stem === 'bass') programNumber = 33; // Electric Bass (finger)
     else if (stem === 'vocals') programNumber = 54; // Synth Voice
-    else if (stem === 'other') programNumber = 4; // Electric Piano / Poly Synth
+    else if (stem === 'guitar') programNumber = 25; // Acoustic Guitar (steel)
+    else if (stem === 'piano') programNumber = 0; // Acoustic Grand Piano
+    else if (stem === 'other') programNumber = 89; // Warm Pad / Poly Synth
     else if (stem === 'drums') programNumber = 0; // Standard Drum Kit
 
     events.push({

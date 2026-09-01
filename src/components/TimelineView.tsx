@@ -88,7 +88,9 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
     { type: 'vocals', label: 'VOCALS', icon: '🎤', color: 'text-cyan-400' },
     { type: 'bass', label: 'BASS', icon: '🎸', color: 'text-amber-400' },
     { type: 'drums', label: 'DRUMS', icon: '🥁', color: 'text-pink-400' },
-    { type: 'other', label: 'OTHER', icon: '🎹', color: 'text-purple-400' },
+    { type: 'guitar', label: 'GUITAR', icon: '🎸', color: 'text-emerald-400' },
+    { type: 'piano', label: 'PIANO', icon: '🎹', color: 'text-sky-400' },
+    { type: 'other', label: 'OTHER', icon: '🎛️', color: 'text-purple-400' },
   ];
 
   const visibleStems = selectedStem === 'all' ? stemsList : stemsList.filter((s) => s.type === selectedStem);
@@ -108,16 +110,16 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
           </p>
         </div>
 
-        {/* Legend for Ensembles & Stem Roles */}
+        {/* Legend for Stems & Signal Bands */}
         <div className="flex flex-wrap items-center gap-3 text-[10px] uppercase font-mono">
-          <span className="flex items-center gap-1.5 text-cyan-400">
-            <div className="w-2 h-2 rounded-full bg-cyan-400" /> HTDemucs v4
+          <span className="flex items-center gap-1.5 text-indigo-400">
+            <div className="w-2 h-2 rounded-full bg-indigo-400" /> Bass Sub-Band
           </span>
           <span className="flex items-center gap-1.5 text-pink-400">
-            <div className="w-2 h-2 rounded-full bg-pink-400" /> RoFormer
+            <div className="w-2 h-2 rounded-full bg-pink-400" /> Vocal Formant
           </span>
-          <span className="flex items-center gap-1.5 text-amber-400">
-            <div className="w-2 h-2 rounded-full bg-amber-400" /> MDX-Drums
+          <span className="flex items-center gap-1.5 text-emerald-400">
+            <div className="w-2 h-2 rounded-full bg-emerald-400" /> Drum Transients
           </span>
         </div>
       </div>

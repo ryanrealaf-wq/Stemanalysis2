@@ -14,6 +14,7 @@ import {
   Zap,
   Activity,
   Layers,
+  Download,
 } from 'lucide-react';
 import { SongPipelineResult, StemType } from '../types';
 
@@ -29,6 +30,8 @@ interface TrackMixerProps {
   onToggleMute: (stem: StemType | 'master') => void;
   onToggleSolo: (stem: StemType) => void;
   onSelectStemFilter: (stem: StemType | 'all') => void;
+  onExportStemMidi?: (stem: StemType) => void;
+  onExportAllMidi?: () => void;
 }
 
 export const TrackMixer: React.FC<TrackMixerProps> = ({
@@ -43,12 +46,16 @@ export const TrackMixer: React.FC<TrackMixerProps> = ({
   onToggleMute,
   onToggleSolo,
   onSelectStemFilter,
+  onExportStemMidi,
+  onExportAllMidi,
 }) => {
   const stems: { type: StemType; label: string; icon: string; color: string; bgGlow: string }[] = [
     { type: 'vocals', label: 'Vocals', icon: '🎤', color: 'text-cyan-400 border-cyan-700/50 bg-cyan-950/30', bgGlow: 'hover:border-cyan-500/60' },
     { type: 'bass', label: 'Bass', icon: '🎸', color: 'text-amber-400 border-amber-700/50 bg-amber-950/30', bgGlow: 'hover:border-amber-500/60' },
     { type: 'drums', label: 'Drums', icon: '🥁', color: 'text-pink-400 border-pink-700/50 bg-pink-950/30', bgGlow: 'hover:border-pink-500/60' },
-    { type: 'other', label: 'Other', icon: '🎹', color: 'text-purple-400 border-purple-700/50 bg-purple-950/30', bgGlow: 'hover:border-purple-500/60' },
+    { type: 'guitar', label: 'Guitar', icon: '🎸', color: 'text-emerald-400 border-emerald-700/50 bg-emerald-950/30', bgGlow: 'hover:border-emerald-500/60' },
+    { type: 'piano', label: 'Piano', icon: '🎹', color: 'text-sky-400 border-sky-700/50 bg-sky-950/30', bgGlow: 'hover:border-sky-500/60' },
+    { type: 'other', label: 'Other', icon: '🎛️', color: 'text-purple-400 border-purple-700/50 bg-purple-950/30', bgGlow: 'hover:border-purple-500/60' },
   ];
 
   return (
@@ -57,12 +64,12 @@ export const TrackMixer: React.FC<TrackMixerProps> = ({
         <div className="flex items-center gap-2">
           <Sliders className="w-3.5 h-3.5 text-indigo-400" />
           <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-slate-300">
-            Stem Mixer & Routing Dispatcher
+            HTDemucs 6-Stem Mixer & Dispatcher
           </h3>
         </div>
 
         {/* Stem Filter Quick Switcher */}
-        <div className="flex items-center gap-1 bg-[#0A0B0E] p-0.5 rounded border border-[#2D3139] text-[10px] font-mono uppercase">
+        <div className="flex flex-wrap items-center gap-1 bg-[#0A0B0E] p-0.5 rounded border border-[#2D3139] text-[10px] font-mono uppercase">
           <button
             onClick={() => onSelectStemFilter('all')}
             className={`px-2 py-0.5 rounded font-semibold transition ${
@@ -90,8 +97,8 @@ export const TrackMixer: React.FC<TrackMixerProps> = ({
         </div>
       </div>
 
-      {/* 4 Stems + Master Mixer Channel Strips */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
+      {/* 6 Stems + Master Mixer Channel Strips */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-2.5">
         {stems.map((stemObj) => {
           const stem = stemObj.type;
           const summary = pipelineResult?.stemSummaries[stem];
@@ -209,6 +216,22 @@ export const TrackMixer: React.FC<TrackMixerProps> = ({
                   <span>{summary?.noteCount || 0} notes</span>
                   <span className="text-amber-400 font-bold">-{summary?.purgedBleedCount || 0} bleed</span>
                 </div>
+
+                {/* Individual Stem MIDI Export Button */}
+                {onExportStemMidi && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onExportStemMidi(stem);
+                    }}
+                    className="w-full mt-1.5 py-1 px-2 rounded bg-indigo-600/20 hover:bg-indigo-600/35 border border-indigo-500/40 text-indigo-300 hover:text-white text-[10px] font-mono font-medium flex items-center justify-center gap-1.5 transition active:scale-95"
+                    title={`Export ${stemObj.label} as .MID file`}
+                  >
+                    <Download className="w-3 h-3 text-indigo-400" />
+                    <span>Export {stemObj.label} MIDI</span>
+                  </button>
+                )}
               </div>
             </div>
           );
@@ -269,6 +292,22 @@ export const TrackMixer: React.FC<TrackMixerProps> = ({
               <span>TOTAL NOTES</span>
               <span className="text-indigo-400 font-bold">{pipelineResult?.cleanedMidiNotes.length || 0}</span>
             </div>
+
+            {/* Master All Stems MIDI Export Button */}
+            {onExportAllMidi && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onExportAllMidi();
+                }}
+                className="w-full mt-1.5 py-1 px-2 rounded bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-mono font-semibold flex items-center justify-center gap-1.5 shadow-md shadow-indigo-600/20 transition active:scale-95"
+                title="Export all stem tracks as Multi-Track .MID Bundle"
+              >
+                <Download className="w-3 h-3" />
+                <span>Export All MIDI (.mid)</span>
+              </button>
+            )}
           </div>
         </div>
       </div>

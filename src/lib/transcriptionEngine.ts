@@ -26,15 +26,21 @@ export function determineRoutingMethod(stem: StemType, role: StemRole, isOrnamen
     return 'ornament_expressive';
   }
   if (role === 'foundation' || stem === 'bass') {
-    return 'monophonic_crepe';
+    return 'monophonic_autocorrelation';
+  }
+  if (stem === 'piano') {
+    return 'chord_harmony_detect';
+  }
+  if (stem === 'guitar') {
+    return role === 'lead' ? 'polyphonic_salience' : 'chord_harmony_detect';
   }
   if (role === 'lead' || stem === 'vocals') {
-    return 'polyphonic_basic_pitch';
+    return 'polyphonic_salience';
   }
   if (role === 'texture' || stem === 'other') {
     return 'chord_harmony_detect';
   }
-  return 'polyphonic_basic_pitch';
+  return 'polyphonic_salience';
 }
 
 /**

@@ -14,12 +14,16 @@ class AudioEngine {
     vocals: null,
     bass: null,
     drums: null,
+    guitar: null,
+    piano: null,
     other: null,
   };
   private stemSources: Record<StemType, AudioBufferSourceNode | null> = {
     vocals: null,
     bass: null,
     drums: null,
+    guitar: null,
+    piano: null,
     other: null,
   };
 
@@ -47,7 +51,7 @@ class AudioEngine {
       this.masterGain.gain.value = 0.85;
       this.masterGain.connect(this.ctx.destination);
 
-      const stems: StemType[] = ['vocals', 'bass', 'drums', 'other'];
+      const stems: StemType[] = ['vocals', 'bass', 'drums', 'guitar', 'piano', 'other'];
       for (const s of stems) {
         const gain = this.ctx.createGain();
         gain.gain.value = 0.8;
@@ -112,7 +116,7 @@ class AudioEngine {
   public setMuteSolo(muted: Record<StemType, boolean>, soloed: Record<StemType, boolean>) {
     this.initContext();
     const anySolo = Object.values(soloed).some((v) => v);
-    const stems: StemType[] = ['vocals', 'bass', 'drums', 'other'];
+    const stems: StemType[] = ['vocals', 'bass', 'drums', 'guitar', 'piano', 'other'];
 
     for (const s of stems) {
       if (!this.stemGains[s]) continue;
@@ -140,7 +144,7 @@ class AudioEngine {
 
   public setAudioStemsAudible(audible: boolean) {
     this.initContext();
-    const stems: StemType[] = ['vocals', 'bass', 'drums', 'other'];
+    const stems: StemType[] = ['vocals', 'bass', 'drums', 'guitar', 'piano', 'other'];
     const gainVal = audible ? 0.8 : 0.0;
     for (const s of stems) {
       if (this.stemGains[s]) {
@@ -177,7 +181,7 @@ class AudioEngine {
     this.pauseOffset = startFrom;
 
     // Start Stem Audio Sources if available
-    const stems: StemType[] = ['vocals', 'bass', 'drums', 'other'];
+    const stems: StemType[] = ['vocals', 'bass', 'drums', 'guitar', 'piano', 'other'];
     for (const s of stems) {
       const buffer = this.stemBuffers[s];
       if (buffer) {
@@ -263,7 +267,7 @@ class AudioEngine {
   }
 
   private stopSources() {
-    const stems: StemType[] = ['vocals', 'bass', 'drums', 'other'];
+    const stems: StemType[] = ['vocals', 'bass', 'drums', 'guitar', 'piano', 'other'];
     for (const s of stems) {
       if (this.stemSources[s]) {
         try {
@@ -344,9 +348,86 @@ class AudioEngine {
       this.playBassSynth(freq, dur, velNorm, dest);
     } else if (note.stem === 'vocals') {
       this.playLeadSynth(freq, dur, velNorm, dest);
+    } else if (note.stem === 'guitar') {
+      this.playGuitarSynth(freq, dur, velNorm, dest);
+    } else if (note.stem === 'piano') {
+      this.playPianoSynth(freq, dur, velNorm, dest);
     } else {
       this.playPadSynth(freq, dur, velNorm, dest);
     }
+  }
+
+  private playGuitarSynth(freq: number, dur: number, vel: number, dest: GainNode) {
+    if (!this.ctx) return;
+    const ctx = this.ctx;
+    const now = ctx.currentTime;
+
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+
+    osc1.type = 'triangle';
+    osc1.frequency.setValueAtTime(freq, now);
+
+    osc2.type = 'sawtooth';
+    osc2.frequency.setValueAtTime(freq * 2.0, now); // Octave overtone
+
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(Math.min(6000, freq * 5), now);
+    filter.frequency.exponentialRampToValueAtTime(Math.max(120, freq * 1.5), now + dur);
+
+    // Pluck attack & exponential acoustic decay
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.linearRampToValueAtTime(0.35 * vel, now + 0.008);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+
+    osc1.connect(filter);
+    osc2.connect(filter);
+    filter.connect(gain);
+    gain.connect(dest);
+
+    osc1.start(now);
+    osc2.start(now);
+    osc1.stop(now + dur + 0.05);
+    osc2.stop(now + dur + 0.05);
+  }
+
+  private playPianoSynth(freq: number, dur: number, vel: number, dest: GainNode) {
+    if (!this.ctx) return;
+    const ctx = this.ctx;
+    const now = ctx.currentTime;
+
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(freq, now);
+
+    osc2.type = 'triangle';
+    osc2.frequency.setValueAtTime(freq * 1.002, now); // Micro-detune for acoustic piano warmth
+
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(Math.min(4500, freq * 3.5), now);
+    filter.frequency.exponentialRampToValueAtTime(Math.max(100, freq * 1.1), now + dur);
+
+    // Piano hammer strike & gentle decay
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.linearRampToValueAtTime(0.38 * vel, now + 0.012);
+    gain.gain.setValueAtTime(0.25 * vel, now + 0.06);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+
+    osc1.connect(filter);
+    osc2.connect(filter);
+    filter.connect(gain);
+    gain.connect(dest);
+
+    osc1.start(now);
+    osc2.start(now);
+    osc1.stop(now + dur + 0.05);
+    osc2.stop(now + dur + 0.05);
   }
 
   private playBassSynth(freq: number, dur: number, vel: number, dest: GainNode) {
@@ -549,84 +630,6 @@ class AudioEngine {
     }
   }
 
-  /**
-   * Synthesizes audio buffers for all 4 stems so that isolated real audio tracks can be played
-   */
-  public generateStemAudioBuffers(duration: number, bpm: number, notes: MidiNote[]): Promise<Record<StemType, AudioBuffer>> {
-    this.initContext();
-    const ctx = this.ctx!;
-    const stems: StemType[] = ['vocals', 'bass', 'drums', 'other'];
-    const sampleRate = 22050; // optimized sample rate for fast rendering
-    const length = Math.max(1, Math.round(duration * sampleRate));
-
-    return new Promise((resolve) => {
-      const result: Record<StemType, AudioBuffer> = {} as any;
-
-      for (const stem of stems) {
-        const audioBuffer = ctx.createBuffer(2, length, sampleRate);
-        const leftChannel = audioBuffer.getChannelData(0);
-        const rightChannel = audioBuffer.getChannelData(1);
-        const stemNotes = notes.filter((n) => n.stem === stem && !n.wasCleanedUp);
-
-        for (const note of stemNotes) {
-          const startSample = Math.floor(note.startTime * sampleRate);
-          const endSample = Math.min(length, Math.floor(note.endTime * sampleRate));
-          const noteDur = (endSample - startSample) / sampleRate;
-          if (startSample >= length || endSample <= startSample) continue;
-
-          const freq = 440 * Math.pow(2, (note.pitch - 69) / 12);
-          const vel = (note.velocity || 90) / 127;
-          const pan = note.pan !== undefined ? note.pan : (stem === 'bass' ? 0 : stem === 'vocals' ? 0 : stem === 'other' ? 0.25 : -0.15);
-          const leftVol = Math.cos(((pan + 1) * Math.PI) / 4);
-          const rightVol = Math.sin(((pan + 1) * Math.PI) / 4);
-
-          for (let i = startSample; i < endSample; i++) {
-            const t = (i - startSample) / sampleRate;
-            const progress = t / noteDur;
-            let sampleVal = 0;
-
-            if (stem === 'drums') {
-              if (note.pitch === 36 || note.pitch === 35) {
-                // Kick
-                const sweepFreq = 150 * Math.exp(-t * 24) + 40;
-                sampleVal = Math.sin(2 * Math.PI * sweepFreq * t) * Math.exp(-t * 12);
-              } else if (note.pitch === 38 || note.pitch === 40) {
-                // Snare
-                const noise = (Math.random() * 2 - 1) * Math.exp(-t * 18);
-                const tone = Math.sin(2 * Math.PI * 180 * t) * Math.exp(-t * 22);
-                sampleVal = (noise * 0.7 + tone * 0.5);
-              } else {
-                // Hat
-                sampleVal = (Math.random() * 2 - 1) * Math.exp(-t * 45);
-              }
-            } else if (stem === 'bass') {
-              const saw = 2 * ((t * freq) % 1) - 1;
-              const sineSub = Math.sin(2 * Math.PI * (freq * 0.5) * t);
-              sampleVal = (saw * 0.4 + sineSub * 0.6) * Math.exp(-progress * 2.2);
-            } else if (stem === 'vocals') {
-              const saw = 2 * ((t * freq) % 1) - 1;
-              const formant = Math.sin(2 * Math.PI * freq * 2.5 * t);
-              sampleVal = (saw * 0.6 + formant * 0.4) * (1 - Math.exp(-t * 40)) * Math.exp(-progress * 1.5);
-            } else {
-              // Other (Pads / Keys)
-              const tri = 2 * Math.abs(2 * ((t * freq) % 1) - 1) - 1;
-              const detune = Math.sin(2 * Math.PI * (freq * 1.005) * t);
-              sampleVal = (tri * 0.5 + detune * 0.5) * (1 - Math.exp(-t * 25)) * (1 - progress * 0.7);
-            }
-
-            const amp = sampleVal * vel * 0.28;
-            leftChannel[i] += amp * leftVol;
-            rightChannel[i] += amp * rightVol;
-          }
-        }
-
-        result[stem] = audioBuffer;
-      }
-
-      this.stemBuffers = result;
-      resolve(result);
-    });
-  }
 }
 
 export const audioEngine = new AudioEngine();

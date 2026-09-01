@@ -55,22 +55,23 @@ async function startServer() {
     }
   });
 
-  // API Route: Backend Stem Separation & Feature Extraction Simulation Info
+  // API Route: Backend Stem Separation & DSP Feature Extraction Engine Info
   app.get('/api/models-info', (req, res) => {
     res.json({
-      ensemble: {
-        generalModel: 'HTDemucs v4 (4-stem split)',
-        vocalModel: 'BS-RoFormer / Mel-RoFormer (high vocal isolation)',
-        drumDenoiseModel: 'MDX-Drums Clean Pass (snare/kick bleed purger)',
+      dspPipeline: {
+        separationGraph: 'Web Audio OfflineAudioContext Multi-Band Crossover Filter Graph',
+        vocalFilter: 'Mid-Band Formant & Harmonic Extractor (280Hz-4.2kHz Bandpass + Peaking Filter)',
+        drumFilter: 'Multi-Band Spectral Flux Transient Decomposition',
         dspFeatureEngine: 'RMS Energy, Spectral Centroid, Onset Density & Pearson Cross-Correlation',
       },
       transcriptionEngines: {
-        foundation: 'Monophonic CREPE / pYIN (Continuous pitch tracking)',
-        lead: 'Polyphonic Basic Pitch / Omnizart (Multi-pitch onset-frame salience)',
+        foundation: 'Monophonic Sub-harmonic YIN / Autocorrelation with Parabolic Interpolation',
+        lead: 'Spectral Salience & Formant Pitch Tracker with 14-bit Continuous Pitch Bends',
         texture: 'Chord / Harmony Voicing Detector (Triads & 7th chords)',
-        drums: 'Librosa / Madmom Transient Multi-band Onset Tracking',
+        drums: 'Multi-Band Transient Attack & Groove Pocket Tracker',
         ornaments: 'Expressive Unquantized Human Micro-timing Engine',
       },
+      aiIntelligence: 'Gemini 3.7 Flash Backend (Arrangement & Section Analysis)',
     });
   });
 

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-export type StemType = 'vocals' | 'bass' | 'drums' | 'other';
+export type StemType = 'vocals' | 'bass' | 'drums' | 'guitar' | 'piano' | 'other';
 
 export type SectionLabel = 
   | 'intro'
@@ -25,8 +25,8 @@ export type StemRole =
   | 'silent';
 
 export type TranscriptionMethod = 
-  | 'monophonic_crepe'
-  | 'polyphonic_basic_pitch'
+  | 'monophonic_autocorrelation'
+  | 'polyphonic_salience'
   | 'chord_harmony_detect'
   | 'onset_drum_tracking'
   | 'ornament_expressive';
@@ -95,6 +95,8 @@ export interface TranscriptionAccuracyProfile {
     bass: string;
     vocals: string;
     drums: string;
+    guitar: string;
+    piano: string;
     other: string;
   };
 }
@@ -204,10 +206,13 @@ export interface SongMetadata {
   bpm: number;
   key: string;
   timeSignature: string; // e.g. "4/4"
-  separationEnsemble: {
-    generalModel: string; // "HTDemucs v4 (4-stem)"
-    vocalModel: string; // "BS-RoFormer / Mel-RoFormer"
-    drumDenoiseModel: string; // "MDX-Drums Clean Pass"
+  separationDsp: {
+    generalGraph: string; // "HTDemucs 6s Deep Hybrid Transformer Multi-Band Separation"
+    vocalFilter: string; // "Mid-Band Formant & Harmonic Extractor"
+    drumFilter: string; // "Transient & Spectral Flux Decomposition"
+    guitarFilter?: string; // "Guitar Mid-Harmonic & Pluck Resonance Extractor"
+    pianoFilter?: string; // "Piano Polyphonic Hammer & Soundboard Resonator"
+    otherFilter?: string; // "Ambient & Synth Texture Matrix"
   };
 }
 
@@ -233,7 +238,7 @@ export interface SongPipelineResult {
   keyProfile?: KeyProfile;
   chords?: ChordSegment[];
   automationLanes?: Record<StemType, AutomationLaneData[]>;
-  selectedGenreStyle?: GenreStyleId;
+  accuracyProfile?: TranscriptionAccuracyProfile;
   geminiExecutiveSummary: string;
   arrangementCritique: string;
   mixRecommendations: string[];

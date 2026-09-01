@@ -91,9 +91,11 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
 
   const stemsList: { type: StemType; label: string; icon: string; filename: string }[] = [
     { type: 'vocals', label: 'Vocals Track (Pitch Bends + CC11)', icon: '🎤', filename: 'vocals' },
-    { type: 'bass', label: 'Bass Track (Monophonic CREPE/pYIN)', icon: '🎸', filename: 'bass' },
+    { type: 'bass', label: 'Bass Track (Monophonic Sub-harmonic YIN)', icon: '🎸', filename: 'bass' },
     { type: 'drums', label: 'Drums Track (Micro-timing Groove)', icon: '🥁', filename: 'drums' },
-    { type: 'other', label: 'Other/Keys Track (Chord Detection)', icon: '🎹', filename: 'other' },
+    { type: 'guitar', label: 'Guitar Track (Polyphonic Riffs & Voicings)', icon: '🎸', filename: 'guitar' },
+    { type: 'piano', label: 'Piano Track (Acoustic Chords & Harmony)', icon: '🎹', filename: 'piano' },
+    { type: 'other', label: 'Other/Synth Track (Pad & Texture Harmony)', icon: '🎛️', filename: 'other' },
   ];
 
   return (
@@ -240,7 +242,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                 Full Song Aligned Multi-Track MIDI (.mid)
               </h3>
               <p className="text-[11px] font-mono text-slate-400 mt-0.5">
-                All 4 stems aligned to {metadata.bpm} BPM grid with embedded pitch bends, CC11 dynamics, and groove template.
+                All 6 stems aligned to {metadata.bpm} BPM grid with embedded pitch bends, CC11 dynamics, and groove template.
               </p>
             </div>
 

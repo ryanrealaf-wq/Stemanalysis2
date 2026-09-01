@@ -9,29 +9,26 @@ import {
   Mic,
   MicOff,
   Sparkles,
-  Music,
-  Disc,
-  Play,
   FileAudio,
-  CheckCircle2,
   AlertCircle,
-  Sliders,
   Radio,
+  AudioWaveform,
+  CheckCircle2,
+  Cpu,
+  Layers,
+  Wand2,
 } from 'lucide-react';
-import { DEMO_SONGS, DemoSongDefinition } from '../lib/demoData';
 
 interface AudioInputPanelProps {
-  onSelectDemoSong: (demoSong: DemoSongDefinition) => void;
   onCustomAudioUploaded: (file: File, buffer: AudioBuffer) => void;
   isProcessing: boolean;
-  activeDemoId: string | null;
+  hasLoadedAudio?: boolean;
 }
 
 export const AudioInputPanel: React.FC<AudioInputPanelProps> = ({
-  onSelectDemoSong,
   onCustomAudioUploaded,
   isProcessing,
-  activeDemoId,
+  hasLoadedAudio = false,
 }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [recordSeconds, setRecordSeconds] = useState(0);
@@ -70,8 +67,8 @@ export const AudioInputPanel: React.FC<AudioInputPanelProps> = ({
 
   const processAudioFile = async (file: File) => {
     setUploadError(null);
-    if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|ogg|flac|m4a|aac)$/i)) {
-      setUploadError('Please select a valid audio file (MP3, WAV, FLAC, M4A, OGG).');
+    if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|ogg|flac|m4a|aac|aiff)$/i)) {
+      setUploadError('Please select a valid audio file (MP3, WAV, FLAC, M4A, OGG, AAC, AIFF).');
       return;
     }
 
@@ -83,7 +80,7 @@ export const AudioInputPanel: React.FC<AudioInputPanelProps> = ({
       onCustomAudioUploaded(file, decodedBuffer);
     } catch (err: any) {
       console.error('Error decoding audio file:', err);
-      setUploadError('Failed to decode audio. Please ensure the file is not corrupted.');
+      setUploadError('Failed to decode audio file. Please verify file integrity.');
     }
   };
 
@@ -125,7 +122,7 @@ export const AudioInputPanel: React.FC<AudioInputPanelProps> = ({
         stream.getTracks().forEach((track) => track.stop());
 
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        const file = new File([audioBlob], `mic-recording-${Date.now()}.webm`, { type: 'audio/webm' });
+        const file = new File([audioBlob], `live-recording-${Date.now()}.webm`, { type: 'audio/webm' });
         const arrayBuffer = await audioBlob.arrayBuffer();
         const decodedBuffer = await audioCtx.decodeAudioData(arrayBuffer);
         onCustomAudioUploaded(file, decodedBuffer);
@@ -140,7 +137,7 @@ export const AudioInputPanel: React.FC<AudioInputPanelProps> = ({
       }, 1000);
     } catch (err) {
       console.error('Microphone access denied or error:', err);
-      setUploadError('Microphone access permission was denied or is unavailable.');
+      setUploadError('Microphone permission was denied or is unavailable.');
     }
   };
 
@@ -161,16 +158,16 @@ export const AudioInputPanel: React.FC<AudioInputPanelProps> = ({
         <div>
           <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-slate-300 flex items-center gap-2">
             <Radio className="w-3.5 h-3.5 text-indigo-400" />
-            Input Source Selection
+            Audio Ingestion & Signal Capture
           </h2>
           <p className="text-[11px] text-slate-500 font-mono mt-0.5">
-            Select a multitrack reference song, upload raw master, or capture live audio
+            Upload audio master stems or capture direct live instrument signal for DSP transcription
           </p>
         </div>
 
         <div className="flex items-center gap-2 text-[10px] uppercase font-mono text-slate-400 bg-[#0A0B0E] px-2.5 py-1 rounded border border-[#2D3139]">
-          <Sparkles className="w-3 h-3 text-indigo-400" />
-          <span>Ensemble + Gemini 3.7</span>
+          <Cpu className="w-3 h-3 text-indigo-400" />
+          <span>Real Web Audio DSP + Gemini 3.7</span>
         </div>
       </div>
 
@@ -181,133 +178,99 @@ export const AudioInputPanel: React.FC<AudioInputPanelProps> = ({
         </div>
       )}
 
-      {/* Grid: Demo Tracks & Custom Upload/Record */}
+      {/* Primary Ingestion Workstation */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
-        {/* Curated Demo Songs */}
-        <div className="lg:col-span-7 space-y-2">
-          <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500 block">
-            Reference Multitrack Songs
-          </span>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            {DEMO_SONGS.map((demo) => {
-              const isActive = activeDemoId === demo.id;
-              return (
-                <button
-                  key={demo.id}
-                  onClick={() => onSelectDemoSong(demo)}
-                  disabled={isProcessing}
-                  className={`p-3 rounded-lg text-left border transition-all relative overflow-hidden group ${
-                    isActive
-                      ? 'bg-[#1A1D24] border-indigo-500/70 shadow-md shadow-indigo-500/10'
-                      : 'bg-[#0A0B0E] border-[#2D3139] hover:border-slate-600 hover:bg-[#1A1D24]/60'
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
-                >
-                  {isActive && (
-                    <div className="absolute top-2 right-2 flex items-center gap-1 text-[9px] font-mono uppercase font-bold text-indigo-300 bg-indigo-950/80 px-1.5 py-0.5 rounded border border-indigo-500/40">
-                      <CheckCircle2 className="w-2.5 h-2.5" />
-                      Loaded
-                    </div>
-                  )}
-
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="w-6 h-6 rounded bg-indigo-600/30 text-indigo-400 border border-indigo-500/40 flex items-center justify-center font-bold text-xs">
-                      <Disc className="w-3.5 h-3.5" />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-white group-hover:text-indigo-300 transition truncate">
-                        {demo.metadata.title}
-                      </h4>
-                      <p className="text-[10px] text-slate-500 font-mono truncate">{demo.metadata.artist}</p>
-                    </div>
-                  </div>
-
-                  <p className="text-[10px] text-slate-400 line-clamp-2 leading-relaxed mb-2">
-                    {demo.description}
-                  </p>
-
-                  <div className="flex items-center justify-between text-[9px] font-mono uppercase text-slate-500 pt-1.5 border-t border-[#2D3139]">
-                    <span className="text-indigo-400 font-semibold">{demo.genre}</span>
-                    <span className="text-slate-300 tabular-nums">{demo.metadata.bpm} BPM • {demo.metadata.key}</span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Upload & Microphone Recording */}
-        <div className="lg:col-span-5 flex flex-col gap-2">
-          <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500 block">
-            Custom Master / Live Capture
-          </span>
-
-          {/* Drag and Drop Zone */}
+        {/* Main Audio File Drop Zone */}
+        <div className="lg:col-span-8">
           <div
+            id="audio-dropzone"
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
-            className={`flex-1 border border-dashed rounded-lg p-3 flex flex-col items-center justify-center text-center cursor-pointer transition ${
+            className={`min-h-[140px] border border-dashed rounded-lg p-5 flex flex-col items-center justify-center text-center cursor-pointer transition relative group ${
               isDragging
-                ? 'border-indigo-400 bg-indigo-950/20'
-                : 'border-[#2D3139] hover:border-slate-600 bg-[#0A0B0E]'
+                ? 'border-indigo-400 bg-indigo-950/30 ring-2 ring-indigo-500/50'
+                : 'border-[#2D3139] hover:border-indigo-500/70 bg-[#0A0B0E] hover:bg-[#1A1D24]/40'
             }`}
           >
             <input
               type="file"
               ref={fileInputRef}
               onChange={handleFileInputChange}
-              accept="audio/*,.mp3,.wav,.flac,.m4a,.ogg"
+              accept="audio/*,.mp3,.wav,.flac,.m4a,.ogg,.aac,.aiff"
               className="hidden"
             />
-            <div className="w-7 h-7 rounded bg-[#1A1D24] border border-[#2D3139] flex items-center justify-center text-indigo-400 mb-1.5">
-              <Upload className="w-3.5 h-3.5" />
+            <div className="w-10 h-10 rounded-lg bg-[#1A1D24] border border-[#2D3139] flex items-center justify-center text-indigo-400 mb-2 group-hover:scale-105 transition">
+              <Upload className="w-5 h-5" />
             </div>
-            <p className="text-xs font-bold text-white">
-              Drop song file, or <span className="text-indigo-400 underline underline-offset-2">browse</span>
+            <p className="text-sm font-bold text-white">
+              Drop audio file here, or <span className="text-indigo-400 underline underline-offset-2">browse filesystem</span>
             </p>
-            <p className="text-[9px] text-slate-500 font-mono uppercase tracking-wider mt-0.5">
-              MP3, WAV, FLAC, M4A, OGG
+            <p className="text-[10px] text-slate-500 font-mono uppercase tracking-wider mt-1">
+              Supports Lossless WAV, FLAC, AIFF, MP3, M4A, OGG (Full Sample Rate)
             </p>
           </div>
+        </div>
 
-          {/* Microphone Recording Button */}
-          <div className="bg-[#1A1D24] p-2.5 rounded-lg border border-[#2D3139] flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2.5">
-              <button
-                onClick={isRecording ? stopRecording : startRecording}
-                disabled={isProcessing}
-                className={`w-7 h-7 rounded flex items-center justify-center transition shadow-md ${
-                  isRecording
-                    ? 'bg-rose-600 text-white animate-pulse shadow-rose-500/30'
-                    : 'bg-[#0A0B0E] text-slate-300 hover:bg-slate-800 hover:text-white border border-[#2D3139]'
-                } disabled:opacity-40`}
-                title={isRecording ? 'Stop Recording' : 'Record from Mic'}
-              >
-                {isRecording ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
-              </button>
-              <div>
-                <span className="text-xs font-bold text-white block">
-                  {isRecording ? `Recording... (${recordSeconds}s)` : 'Direct Audio Capture'}
-                </span>
-                <span className="text-[9px] text-slate-500 font-mono block">
-                  {isRecording ? 'Capturing live audio signal' : 'Microphone input to stem pipeline'}
+        {/* Live Audio Capture & DSP Specs */}
+        <div className="lg:col-span-4 flex flex-col gap-2.5">
+          {/* Microphone Recording Workstation */}
+          <div className="bg-[#0A0B0E] p-3 rounded-lg border border-[#2D3139] flex flex-col justify-between flex-1">
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <div className="flex items-center gap-2">
+                <div className={`w-2.5 h-2.5 rounded-full ${isRecording ? 'bg-rose-500 animate-ping' : 'bg-slate-600'}`} />
+                <span className="text-xs font-bold text-white uppercase tracking-wider font-mono">
+                  {isRecording ? `Recording (${recordSeconds}s)` : 'Direct Audio Capture'}
                 </span>
               </div>
+
+              {isRecording && (
+                <span className="text-[10px] font-mono text-rose-400 font-bold animate-pulse">
+                  LIVE PCM
+                </span>
+              )}
             </div>
 
+            <p className="text-[10px] text-slate-400 leading-relaxed mb-3">
+              Capture acoustic vocals, guitar, or live performance through your audio interface.
+            </p>
+
             {isRecording && (
-              <div className="flex items-center gap-1.5">
-                <div className="w-14 h-1.5 bg-[#0A0B0E] rounded-full overflow-hidden border border-[#2D3139]">
+              <div className="mb-2 flex items-center gap-2">
+                <div className="flex-1 h-2 bg-[#1A1D24] rounded-full overflow-hidden border border-[#2D3139]">
                   <div
                     className="h-full bg-rose-500 transition-all duration-75"
                     style={{ width: `${Math.min(100, recordLevel * 100)}%` }}
                   />
                 </div>
-                <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
+                <span className="text-[9px] font-mono text-slate-400 tabular-nums">
+                  {Math.round(recordLevel * 100)}%
+                </span>
               </div>
             )}
+
+            <button
+              onClick={isRecording ? stopRecording : startRecording}
+              disabled={isProcessing}
+              className={`w-full py-2 px-3 rounded text-xs font-mono font-bold uppercase tracking-wider transition flex items-center justify-center gap-2 ${
+                isRecording
+                  ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-600/30'
+                  : 'bg-[#1A1D24] hover:bg-[#2D3139] text-slate-200 border border-[#2D3139]'
+              } disabled:opacity-40`}
+            >
+              {isRecording ? (
+                <>
+                  <MicOff className="w-3.5 h-3.5" />
+                  <span>Stop & Transcribe Audio</span>
+                </>
+              ) : (
+                <>
+                  <Mic className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>Record Microphone Signal</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
       </div>

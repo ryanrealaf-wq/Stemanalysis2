@@ -34,9 +34,11 @@ export const FeatureAnalyticsPanel: React.FC<FeatureAnalyticsPanelProps> = ({
   const totalDuration = duration || metadata.duration || 30;
 
   const stems: { type: StemType; label: string; stroke: string; fill: string }[] = [
-    { type: 'vocals', label: 'Vocals', stroke: '#f472b6', fill: 'rgba(244, 114, 182, 0.1)' },
-    { type: 'bass', label: 'Bass', stroke: '#6366f1', fill: 'rgba(99, 102, 241, 0.1)' },
-    { type: 'drums', label: 'Drums', stroke: '#10b981', fill: 'rgba(16, 185, 129, 0.1)' },
+    { type: 'vocals', label: 'Vocals', stroke: '#22d3ee', fill: 'rgba(34, 211, 238, 0.1)' },
+    { type: 'bass', label: 'Bass', stroke: '#fbbf24', fill: 'rgba(251, 191, 36, 0.1)' },
+    { type: 'drums', label: 'Drums', stroke: '#f472b6', fill: 'rgba(244, 114, 182, 0.1)' },
+    { type: 'guitar', label: 'Guitar', stroke: '#34d399', fill: 'rgba(52, 211, 153, 0.1)' },
+    { type: 'piano', label: 'Piano', stroke: '#38bdf8', fill: 'rgba(56, 189, 248, 0.1)' },
     { type: 'other', label: 'Other', stroke: '#c084fc', fill: 'rgba(192, 132, 252, 0.1)' },
   ];
 

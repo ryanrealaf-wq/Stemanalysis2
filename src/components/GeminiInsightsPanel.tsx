@@ -44,33 +44,45 @@ export const GeminiInsightsPanel: React.FC<GeminiInsightsPanelProps> = ({
   const routingRules = [
     {
       role: 'Foundation / Bass',
-      model: 'Monophonic Pitch Tracker (CREPE / pYIN)',
-      rationale: 'Tracks continuous fundamental frequency (F0) curves without overtone octave jumping.',
-      color: 'border-indigo-500/40 text-indigo-300 bg-indigo-500/10',
-    },
-    {
-      role: 'Lead / Melody',
-      model: 'Polyphonic Transcription (Basic Pitch / Omnizart)',
-      rationale: 'Extracts multi-pitch note onsets, vocal formant pitch changes, and polyphonic lines.',
+      model: 'Monophonic Sub-harmonic YIN & Autocorrelation',
+      rationale: 'Tracks continuous fundamental frequency (F0) curves with parabolic peak interpolation to prevent octave jumps.',
       color: 'border-amber-500/40 text-amber-300 bg-amber-500/10',
     },
     {
-      role: 'Texture / Pads',
+      role: 'Lead / Vocal & Guitar Solo',
+      model: 'Spectral Salience & Formant Pitch Tracker',
+      rationale: 'Extracts melodic note onsets, vocal formant pitch changes, and 14-bit microtonal pitch bends.',
+      color: 'border-cyan-500/40 text-cyan-300 bg-cyan-500/10',
+    },
+    {
+      role: 'Guitar / Riffs & Chords',
+      model: 'Polyphonic Salience & Strum Voicing Engine',
+      rationale: 'Captures dynamic guitar strums, arpeggios, and pluck transients while filtering bleed.',
+      color: 'border-emerald-500/40 text-emerald-300 bg-emerald-500/10',
+    },
+    {
+      role: 'Piano / Acoustic Harmony',
+      model: 'Acoustic Triad & Multi-Voice Chord Detector',
+      rationale: 'Transcribes complex polyphonic keyboard voicings, hammer strike attacks, and voice leading.',
+      color: 'border-sky-500/40 text-sky-300 bg-sky-500/10',
+    },
+    {
+      role: 'Texture / Pads & Synths',
       model: 'Chord & Harmony Voicing Detector',
-      rationale: 'Identifies harmonic blocks and triads (Em7, Ab, Db) instead of noisy individual note triggers.',
+      rationale: 'Identifies harmonic blocks and atmospheric triads instead of noisy individual triggers.',
       color: 'border-purple-500/40 text-purple-300 bg-purple-500/10',
     },
     {
       role: 'Drums / Percussion',
-      model: 'Multi-Band Onset Detection (Librosa / Madmom)',
+      model: 'Multi-Band Spectral Flux Transient Decomposition',
       rationale: 'Pitch-independent transient attack detection (Sub=Kick 36, Mid=Snare 38, High=Hi-Hat 42).',
-      color: 'border-emerald-500/40 text-emerald-300 bg-emerald-500/10',
+      color: 'border-pink-500/40 text-pink-300 bg-pink-500/10',
     },
     {
       role: 'Ornament / Ad-libs',
       model: 'Expressive Micro-timing Preserver',
       rationale: 'Bypasses rigid beat-grid quantization to preserve human vocal vibrato, melismas, and drum fills.',
-      color: 'border-pink-500/40 text-pink-300 bg-pink-500/10',
+      color: 'border-indigo-500/40 text-indigo-300 bg-indigo-500/10',
     },
   ];
 
@@ -149,22 +161,30 @@ export const GeminiInsightsPanel: React.FC<GeminiInsightsPanelProps> = ({
                     {sec.musicalContext}
                   </p>
 
-                  <div className="grid grid-cols-2 gap-1.5 text-[10px] font-mono pt-1.5 border-t border-[#2D3139]">
+                  <div className="grid grid-cols-3 gap-1.5 text-[10px] font-mono pt-1.5 border-t border-[#2D3139]">
                     <div>
                       <span className="text-slate-500 text-[9px] uppercase block">Vocals:</span>
-                      <span className="font-bold text-cyan-400 uppercase">{sec.stemRoles.vocals}</span>
+                      <span className="font-bold text-cyan-400 uppercase">{sec.stemRoles.vocals || 'silent'}</span>
                     </div>
                     <div>
                       <span className="text-slate-500 text-[9px] uppercase block">Bass:</span>
-                      <span className="font-bold text-amber-400 uppercase">{sec.stemRoles.bass}</span>
+                      <span className="font-bold text-amber-400 uppercase">{sec.stemRoles.bass || 'silent'}</span>
                     </div>
                     <div>
                       <span className="text-slate-500 text-[9px] uppercase block">Drums:</span>
-                      <span className="font-bold text-pink-400 uppercase">{sec.stemRoles.drums}</span>
+                      <span className="font-bold text-pink-400 uppercase">{sec.stemRoles.drums || 'silent'}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 text-[9px] uppercase block">Guitar:</span>
+                      <span className="font-bold text-emerald-400 uppercase">{sec.stemRoles.guitar || 'silent'}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 text-[9px] uppercase block">Piano:</span>
+                      <span className="font-bold text-sky-400 uppercase">{sec.stemRoles.piano || 'silent'}</span>
                     </div>
                     <div>
                       <span className="text-slate-500 text-[9px] uppercase block">Other:</span>
-                      <span className="font-bold text-purple-400 uppercase">{sec.stemRoles.other}</span>
+                      <span className="font-bold text-purple-400 uppercase">{sec.stemRoles.other || 'silent'}</span>
                     </div>
                   </div>
                 </div>

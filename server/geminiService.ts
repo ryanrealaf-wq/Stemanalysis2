@@ -70,7 +70,7 @@ export async function runGeminiFunctionalAnalysis(
     }));
 
     const prompt = `You are an expert musicologist and audio intelligence AI.
-Perform a high-level FUNCTIONAL ANALYSIS of the separated stems of this track.
+Perform a high-level FUNCTIONAL ANALYSIS of the separated 6 stems (HTDemucs 6s architecture: vocals, bass, drums, guitar, piano, other) of this track.
 Track Info:
 - Title: "${metadata.title}" by ${metadata.artist}
 - Duration: ${metadata.duration}s
@@ -87,7 +87,7 @@ ${JSON.stringify(correlationSummary, null, 2)}
 Your task:
 1. Segment the song into distinct musical sections across time (e.g., intro, verse, chorus, bridge, drop, outro, solo).
 2. For each section:
-   - Assign stem roles for each of the 4 stems (vocals, bass, drums, other): must be one of ['foundation', 'texture', 'lead', 'ornament', 'percussion', 'silent'].
+   - Assign stem roles for each of the 6 stems (vocals, bass, drums, guitar, piano, other): must be one of ['foundation', 'texture', 'lead', 'ornament', 'percussion', 'silent'].
    - Explain WHY each stem serves that role based on the energy/centroid features and musical function (not just raw audio detection).
    - Recommend quantization strictness (0-100%): e.g. 95-100% for drops/heavy choruses, 60-70% for verses, 0-30% for loose ornament ad-libs.
    - Rate harmonic tension (0-100%) and dynamics ('low' | 'medium' | 'high' | 'peak').
@@ -98,7 +98,7 @@ Your task:
       contents: prompt,
       config: {
         systemInstruction:
-          'You are an elite music producer and musicology AI specializing in multitrack stem separation analysis, functional role attribution, and adaptive MIDI transcription.',
+          'You are an elite music producer and musicology AI specializing in HTDemucs 6-stem separation analysis, functional role attribution, and adaptive MIDI transcription.',
         responseMimeType: 'application/json',
         responseSchema: {
           type: Type.OBJECT,
@@ -139,9 +139,11 @@ Your task:
                       vocals: { type: Type.STRING },
                       bass: { type: Type.STRING },
                       drums: { type: Type.STRING },
+                      guitar: { type: Type.STRING },
+                      piano: { type: Type.STRING },
                       other: { type: Type.STRING },
                     },
-                    required: ['vocals', 'bass', 'drums', 'other'],
+                    required: ['vocals', 'bass', 'drums', 'guitar', 'piano', 'other'],
                   },
                   stemReasoning: {
                     type: Type.OBJECT,
@@ -149,9 +151,11 @@ Your task:
                       vocals: { type: Type.STRING },
                       bass: { type: Type.STRING },
                       drums: { type: Type.STRING },
+                      guitar: { type: Type.STRING },
+                      piano: { type: Type.STRING },
                       other: { type: Type.STRING },
                     },
-                    required: ['vocals', 'bass', 'drums', 'other'],
+                    required: ['vocals', 'bass', 'drums', 'guitar', 'piano', 'other'],
                   },
                   keyMoments: {
                     type: Type.ARRAY,
@@ -229,13 +233,17 @@ function generateAlgorithmicFallbackAnalysis(
         vocals: 'texture',
         bass: 'silent',
         drums: 'percussion',
+        guitar: 'texture',
+        piano: 'texture',
         other: 'texture',
       },
       stemReasoning: {
         vocals: 'Ambient vocal sweeps providing harmonic backdrop before the main lead melody enters.',
         bass: 'Tacet during opening measures to allow maximum dynamic contrast when the verse kicks in.',
         drums: 'Light timekeeping transients establishing the 4/4 meter.',
-        other: 'Sustained chord pads outlining the tonal center.',
+        guitar: 'Sparse acoustic/electric strum accents setting the tonal vibe.',
+        piano: 'Warm reverberant intro chords outlining the root harmony.',
+        other: 'Sustained synth pads establishing the atmospheric stage.',
       },
       keyMoments: ['Intro filter sweep', 'Rhythmic entrance transition'],
     },
@@ -253,13 +261,17 @@ function generateAlgorithmicFallbackAnalysis(
         vocals: 'lead',
         bass: 'foundation',
         drums: 'percussion',
+        guitar: 'texture',
+        piano: 'foundation',
         other: 'texture',
       },
       stemReasoning: {
         vocals: 'Lead vocal carrying the primary melody with expressive micro-timing.',
         bass: 'Monophonic root-fifth motion locking with the drum groove.',
         drums: 'Steady backbeat with kick and snare alternating.',
-        other: 'Subtle comping chords filling space in vocal rests.',
+        guitar: 'Rhythmic comping strums filling space between vocal phrases.',
+        piano: 'Tonal chords supporting vocal cadence and harmonic progression.',
+        other: 'Subtle atmospheric texture filling the background.',
       },
       keyMoments: ['Lead vocal entrance', 'Bass groove synchronization'],
     },
@@ -277,13 +289,17 @@ function generateAlgorithmicFallbackAnalysis(
         vocals: 'lead',
         bass: 'foundation',
         drums: 'percussion',
+        guitar: 'lead',
+        piano: 'foundation',
         other: 'texture',
       },
       stemReasoning: {
         vocals: 'Anthemic vocal hook sung at full dynamic power.',
         bass: 'Heavy synth/electric bass doubling the kick drum with maximum low-end energy.',
         drums: 'Full drum kit with open hi-hats and driving snare accents.',
-        other: 'Wide stereo harmonic voicings generating maximum acoustic wall of sound.',
+        guitar: 'Driving distorted/clean power chords or lead riff supporting the hook.',
+        piano: 'Full-bodied octave chords reinforcing harmonic weight.',
+        other: 'Wide stereo harmonic synth layers generating maximum wall of sound.',
       },
       keyMoments: ['Drop impact', 'Peak harmonic crescendo'],
     },
@@ -301,12 +317,16 @@ function generateAlgorithmicFallbackAnalysis(
         vocals: 'ornament',
         bass: 'foundation',
         drums: 'percussion',
+        guitar: 'ornament',
+        piano: 'texture',
         other: 'texture',
       },
       stemReasoning: {
         vocals: 'Freeform expressive vocal embellishments and runs.',
         bass: 'Sustained tonic pedal note grounding the resolution.',
         drums: 'Stripped back percussion fading out.',
+        guitar: 'Gentle fingerpicked outro arpeggio.',
+        piano: 'Decaying grand piano chords resolving to the tonic.',
         other: 'Decaying reverb tail on the final chord.',
       },
       keyMoments: ['Vocal ad-lib run', 'Final chord decay'],

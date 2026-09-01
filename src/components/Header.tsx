@@ -81,7 +81,7 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={onSelectTrackModal}
             className="md:hidden px-2.5 py-1 rounded bg-[#1A1D24] text-[10px] font-mono text-slate-300 border border-[#2D3139] hover:bg-slate-800 transition uppercase tracking-wider"
           >
-            Track Select
+            Upload Audio
           </button>
         </div>
 
@@ -167,7 +167,7 @@ export const Header: React.FC<HeaderProps> = ({
             className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#1A1D24] text-xs font-mono uppercase tracking-wider text-slate-300 border border-[#2D3139] hover:bg-[#2D3139] hover:text-white transition"
           >
             <Cpu className="w-3.5 h-3.5 text-indigo-400" />
-            <span>Load Track</span>
+            <span>Ingest Audio</span>
           </button>
 
           <button

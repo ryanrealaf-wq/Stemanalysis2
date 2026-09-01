@@ -20,6 +20,7 @@ import {
   Activity,
   Headphones,
   Maximize2,
+  Download,
 } from 'lucide-react';
 import { AuditionMode, MidiNote, SongPipelineResult, StemType, midiPitchToNoteName } from '../types';
 import { audioEngine } from '../lib/audioPlayer';
@@ -34,6 +35,7 @@ interface PianoRollViewProps {
   onSeek: (time: number) => void;
   auditionMode?: AuditionMode;
   onChangeAuditionMode?: (mode: AuditionMode) => void;
+  onExportStemMidi?: (stem: StemType | 'all') => void;
 }
 
 export const PianoRollView: React.FC<PianoRollViewProps> = ({
@@ -44,6 +46,7 @@ export const PianoRollView: React.FC<PianoRollViewProps> = ({
   onSeek,
   auditionMode = 'hybrid_unison',
   onChangeAuditionMode,
+  onExportStemMidi,
 }) => {
   const [showPurgedBleed, setShowPurgedBleed] = useState(true);
   const [showWaveformOverlay, setShowWaveformOverlay] = useState(true);
@@ -90,6 +93,10 @@ export const PianoRollView: React.FC<PianoRollViewProps> = ({
         return 'bg-amber-500/80 border-amber-300 text-amber-950 font-bold';
       case 'drums':
         return 'bg-pink-500/80 border-pink-300 text-pink-950 font-bold';
+      case 'guitar':
+        return 'bg-emerald-500/80 border-emerald-300 text-emerald-950 font-bold';
+      case 'piano':
+        return 'bg-sky-500/80 border-sky-300 text-sky-950 font-bold';
       case 'other':
         return 'bg-purple-500/80 border-purple-300 text-purple-950 font-bold';
     }
@@ -243,6 +250,18 @@ export const PianoRollView: React.FC<PianoRollViewProps> = ({
             <Filter className="w-3 h-3" />
             <span>Purged Bleed ({pipelineResult.purgedNotes.length})</span>
           </button>
+
+          {/* Quick Export Stem MIDI */}
+          {onExportStemMidi && (
+            <button
+              onClick={() => onExportStemMidi(selectedStem)}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 hover:text-white border border-indigo-500/50 font-semibold transition"
+              title={`Download MIDI for ${selectedStem === 'all' ? 'All Stems' : selectedStem}`}
+            >
+              <Download className="w-3 h-3" />
+              <span>Export {selectedStem === 'all' ? 'Multi-Track' : selectedStem} .MID</span>
+            </button>
+          )}
         </div>
       </div>
 
