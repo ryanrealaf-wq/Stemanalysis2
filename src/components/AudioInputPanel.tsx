@@ -17,7 +17,9 @@ import {
   Cpu,
   Layers,
   Wand2,
+  Zap,
 } from 'lucide-react';
+import { generateDemoAudioBuffer } from '../lib/demoSongGenerator';
 
 interface AudioInputPanelProps {
   onCustomAudioUploaded: (file: File, buffer: AudioBuffer) => void;
@@ -31,6 +33,7 @@ export const AudioInputPanel: React.FC<AudioInputPanelProps> = ({
   hasLoadedAudio = false,
 }) => {
   const [isRecording, setIsRecording] = useState(false);
+  const [isGeneratingDemo, setIsGeneratingDemo] = useState(false);
   const [recordSeconds, setRecordSeconds] = useState(0);
   const [recordLevel, setRecordLevel] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -41,6 +44,21 @@ export const AudioInputPanel: React.FC<AudioInputPanelProps> = ({
   const timerIntervalRef = useRef<number | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleLoadDemoTrack = async () => {
+    try {
+      setIsGeneratingDemo(true);
+      setUploadError(null);
+      const demoBuffer = await generateDemoAudioBuffer(12);
+      const demoFile = new File(['demo-audio'], 'cosmic_funk_jam.wav', { type: 'audio/wav' });
+      onCustomAudioUploaded(demoFile, demoBuffer);
+    } catch (err: any) {
+      console.error('Failed to generate demo track:', err);
+      setUploadError('Failed to generate synthesized demo audio: ' + (err.message || String(err)));
+    } finally {
+      setIsGeneratingDemo(false);
+    }
+  };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -252,7 +270,7 @@ export const AudioInputPanel: React.FC<AudioInputPanelProps> = ({
 
             <button
               onClick={isRecording ? stopRecording : startRecording}
-              disabled={isProcessing}
+              disabled={isProcessing || isGeneratingDemo}
               className={`w-full py-2 px-3 rounded text-xs font-mono font-bold uppercase tracking-wider transition flex items-center justify-center gap-2 ${
                 isRecording
                   ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-600/30'
@@ -271,6 +289,23 @@ export const AudioInputPanel: React.FC<AudioInputPanelProps> = ({
                 </>
               )}
             </button>
+
+            {/* Instant Demo Synthesized Audio Loader */}
+            <div className="mt-2.5 pt-2 border-t border-[#2D3139]">
+              <button
+                type="button"
+                onClick={handleLoadDemoTrack}
+                disabled={isProcessing || isGeneratingDemo || isRecording}
+                className="w-full py-2 px-3 rounded bg-indigo-600/20 hover:bg-indigo-600/35 border border-indigo-500/50 hover:border-indigo-400 text-indigo-300 hover:text-white text-xs font-mono font-bold uppercase tracking-wider transition flex items-center justify-center gap-2 disabled:opacity-40"
+                title="Synthesize and separate a full 6-stem funk demo track (Vocals, Bass, Drums, Guitar, Piano, Other)"
+              >
+                <Zap className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                <span>{isGeneratingDemo ? 'Synthesizing Audio...' : '⚡ Try Demo Track (6 Stems)'}</span>
+              </button>
+              <span className="text-[9px] font-mono text-slate-500 text-center block mt-1">
+                Auto-separates & auto-downloads stems ZIP package
+              </span>
+            </div>
           </div>
         </div>
       </div>

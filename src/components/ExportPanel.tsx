@@ -18,23 +18,49 @@ import {
 } from 'lucide-react';
 import { MidiExportOptions, SongPipelineResult, StemType } from '../types';
 import { DEFAULT_EXPORT_OPTIONS, downloadMidiBlob, generateMidiFile } from '../lib/midiExport';
+import { downloadStemmedAudioZip } from '../lib/audioExport';
+import { FileArchive, Check } from 'lucide-react';
 
 interface ExportPanelProps {
   pipelineResult: SongPipelineResult | null;
+  stemBuffers?: Record<StemType, AudioBuffer> | null;
   onClose: () => void;
 }
 
 export const ExportPanel: React.FC<ExportPanelProps> = ({
   pipelineResult,
+  stemBuffers,
   onClose,
 }) => {
   if (!pipelineResult) return null;
 
   const { metadata, cleanedMidiNotes, sections, geminiExecutiveSummary, stemSummaries, grooveTemplate, keyProfile } = pipelineResult;
 
+  const [isZipping, setIsZipping] = useState(false);
+  const [zipSuccess, setZipSuccess] = useState(false);
   const [exportOptions, setExportOptions] = useState<MidiExportOptions>({
     ...DEFAULT_EXPORT_OPTIONS,
   });
+
+  const handleExportStemmedAudioZip = async () => {
+    if (!stemBuffers) return;
+    try {
+      setIsZipping(true);
+      const titleSlug = metadata.title.toLowerCase().replace(/[^a-z0-9]+/g, '_');
+      await downloadStemmedAudioZip(stemBuffers, metadata.title, [
+        {
+          filename: `${titleSlug}_aligned_multitrack.mid`,
+          data: generateMidiFile(cleanedMidiNotes, metadata.bpm, undefined, exportOptions),
+        },
+      ]);
+      setZipSuccess(true);
+      setTimeout(() => setZipSuccess(false), 4000);
+    } catch (err) {
+      console.error('Failed to export audio zip:', err);
+    } finally {
+      setIsZipping(false);
+    }
+  };
 
   const handleExportFullMidi = () => {
     const bytes = generateMidiFile(cleanedMidiNotes, metadata.bpm, undefined, exportOptions);
@@ -228,6 +254,53 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                 <option value={12}>±12 Semitones (Full Octave Pitch Dive)</option>
               </select>
             </div>
+          </div>
+        </div>
+
+        {/* Stemmed Audio Package (.ZIP) Download Section */}
+        <div className="mb-4 p-3.5 rounded bg-emerald-950/20 border border-emerald-500/40 relative overflow-hidden">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-emerald-900/50 text-emerald-300 font-bold border border-emerald-500/40">
+                  LOSSLESS 16-BIT WAV + ZIP
+                </span>
+                <span className="text-[9px] font-mono text-slate-400">
+                  6 Stems Package
+                </span>
+              </div>
+              <h3 className="text-xs font-bold text-white uppercase tracking-wider mt-1.5 flex items-center gap-1.5">
+                <FileArchive className="w-4 h-4 text-emerald-400" />
+                Download All Stemmed Audio Files (.zip)
+              </h3>
+              <p className="text-[11px] font-mono text-slate-400 mt-0.5">
+                Packages Vocals, Bass, Drums, Guitar, Piano, and Other into separate lossless WAV files ready for any DAW, plus multitrack MIDI.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleExportStemmedAudioZip}
+              disabled={isZipping || !stemBuffers}
+              className="px-4 py-2.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-mono font-bold tracking-wider hover:brightness-110 transition flex items-center gap-2 shrink-0 uppercase border border-emerald-400 shadow-lg shadow-emerald-950/50 disabled:opacity-40"
+            >
+              {isZipping ? (
+                <>
+                  <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>Compressing ZIP...</span>
+                </>
+              ) : zipSuccess ? (
+                <>
+                  <Check className="w-3.5 h-3.5 text-white" />
+                  <span>Downloaded!</span>
+                </>
+              ) : (
+                <>
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Download Stems (.ZIP)</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
 

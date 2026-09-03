@@ -87,7 +87,8 @@ class AudioEngine {
   public setVolume(stem: StemType | 'master', vol: number) {
     this.initContext();
     if (!this.ctx) return;
-    const clamped = Math.max(0, Math.min(1, vol));
+    const safeVol = typeof vol === 'number' && !isNaN(vol) ? vol : 0.85;
+    const clamped = Math.max(0, Math.min(1, safeVol));
     const now = this.ctx.currentTime;
     if (stem === 'master') {
       if (this.masterGain) {
@@ -105,7 +106,8 @@ class AudioEngine {
   public setPan(stem: StemType, panVal: number) {
     this.initContext();
     if (!this.ctx) return;
-    const clamped = Math.max(-1, Math.min(1, panVal));
+    const safePan = typeof panVal === 'number' && !isNaN(panVal) ? panVal : 0;
+    const clamped = Math.max(-1, Math.min(1, safePan));
     const now = this.ctx.currentTime;
     if (this.stemPanners[stem]) {
       this.stemPanners[stem].pan.cancelScheduledValues(now);
@@ -115,15 +117,17 @@ class AudioEngine {
 
   public setMuteSolo(muted: Record<StemType, boolean>, soloed: Record<StemType, boolean>) {
     this.initContext();
-    const anySolo = Object.values(soloed).some((v) => v);
+    const safeSoloed = soloed || {};
+    const safeMuted = muted || {};
+    const anySolo = Object.values(safeSoloed).some((v) => Boolean(v));
     const stems: StemType[] = ['vocals', 'bass', 'drums', 'guitar', 'piano', 'other'];
 
     for (const s of stems) {
       if (!this.stemGains[s]) continue;
       let effectiveGain = 0.8;
       if (anySolo) {
-        effectiveGain = soloed[s] ? 0.8 : 0.0;
-      } else if (muted[s]) {
+        effectiveGain = safeSoloed[s] ? 0.8 : 0.0;
+      } else if (safeMuted[s]) {
         effectiveGain = 0.0;
       }
       this.stemGains[s].gain.setTargetAtTime(effectiveGain, this.ctx!.currentTime, 0.02);

@@ -25,6 +25,8 @@ import {
   UploadCloud,
   Cpu,
   AudioWaveform,
+  FileArchive,
+  Check,
 } from 'lucide-react';
 
 import {
@@ -55,6 +57,7 @@ import {
 } from './lib/audioDsp';
 import { determineRoutingMethod, processMidiAlignmentAndCleanup, midiPitchToNoteName } from './lib/transcriptionEngine';
 import { generateMidiFile, downloadMidiBlob } from './lib/midiExport';
+import { downloadStemmedAudioZip } from './lib/audioExport';
 
 import { Header } from './components/Header';
 import { AudioInputPanel } from './components/AudioInputPanel';
@@ -69,9 +72,12 @@ import { AccuracyMetricsPanel } from './components/AccuracyMetricsPanel';
 
 export default function App() {
   const [pipelineResult, setPipelineResult] = useState<SongPipelineResult | null>(null);
+  const [stemBuffersState, setStemBuffersState] = useState<Record<StemType, AudioBuffer> | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [processingMessage, setProcessingMessage] = useState('');
+  const [autoDownloadNotice, setAutoDownloadNotice] = useState<string | null>(null);
+  const [isZipping, setIsZipping] = useState(false);
   const [activeTab, setActiveTab] = useState<'timeline' | 'pianoroll' | 'accuracy' | 'gemini' | 'features'>('timeline');
   const [showAudioInput, setShowAudioInput] = useState(false);
 
@@ -82,11 +88,13 @@ export default function App() {
   const [playSynthMidi, setPlaySynthMidi] = useState(true);
   const [auditionMode, setAuditionMode] = useState<AuditionMode>('hybrid_unison');
 
-  // Mixer State
+  // Mixer State for all 6 stems
   const [volume, setVolume] = useState<Record<StemType | 'master', number>>({
     vocals: 0.85,
     bass: 0.85,
     drums: 0.85,
+    guitar: 0.85,
+    piano: 0.85,
     other: 0.85,
     master: 0.85,
   });
@@ -94,6 +102,8 @@ export default function App() {
     vocals: false,
     bass: false,
     drums: false,
+    guitar: false,
+    piano: false,
     other: false,
     master: false,
   });
@@ -101,12 +111,16 @@ export default function App() {
     vocals: false,
     bass: false,
     drums: false,
+    guitar: false,
+    piano: false,
     other: false,
   });
   const [pan, setPan] = useState<Record<StemType, number>>({
     vocals: 0,
     bass: 0,
     drums: -0.1,
+    guitar: -0.2,
+    piano: 0.15,
     other: 0.2,
   });
   const [selectedStem, setSelectedStem] = useState<StemType | 'all'>('all');
@@ -131,11 +145,11 @@ export default function App() {
   useEffect(() => {
     audioEngine.setMuteSolo(isMuted as Record<StemType, boolean>, isSoloed);
     audioEngine.setPlayMidiSynth(playSynthMidi);
-    audioEngine.setVolume('master', isMuted.master ? 0 : volume.master);
-    const stems: StemType[] = ['vocals', 'bass', 'drums', 'other'];
+    audioEngine.setVolume('master', isMuted.master ? 0 : (volume.master ?? 0.85));
+    const stems: StemType[] = ['vocals', 'bass', 'drums', 'guitar', 'piano', 'other'];
     for (const s of stems) {
-      audioEngine.setVolume(s, volume[s]);
-      audioEngine.setPan(s, pan[s]);
+      audioEngine.setVolume(s, volume[s] ?? 0.85);
+      audioEngine.setPan(s, pan[s] ?? 0);
     }
   }, [volume, isMuted, isSoloed, pan, playSynthMidi]);
 
@@ -224,11 +238,20 @@ export default function App() {
                 harmonicTension: 35,
                 dynamics: 'medium',
                 quantizationStrictness: 70,
-                stemRoles: { vocals: 'lead', bass: 'foundation', drums: 'percussion', other: 'texture' },
+                stemRoles: {
+                  vocals: 'lead',
+                  bass: 'foundation',
+                  drums: 'percussion',
+                  guitar: 'lead',
+                  piano: 'texture',
+                  other: 'texture',
+                },
                 stemReasoning: {
                   vocals: 'Lead melodic phrasing.',
                   bass: 'Monophonic ground line.',
                   drums: 'Timekeeping transients.',
+                  guitar: 'Polyphonic rhythmic comping.',
+                  piano: 'Harmonic triad voicings.',
                   other: 'Harmonic comping.',
                 },
                 keyMoments: ['Theme entrance'],
@@ -243,11 +266,20 @@ export default function App() {
                 harmonicTension: 85,
                 dynamics: 'high',
                 quantizationStrictness: 95,
-                stemRoles: { vocals: 'lead', bass: 'foundation', drums: 'percussion', other: 'texture' },
+                stemRoles: {
+                  vocals: 'lead',
+                  bass: 'foundation',
+                  drums: 'percussion',
+                  guitar: 'lead',
+                  piano: 'foundation',
+                  other: 'texture',
+                },
                 stemReasoning: {
                   vocals: 'Peak vocal phrasing.',
                   bass: 'Driving root line.',
                   drums: 'Full drum kit transients.',
+                  guitar: 'Power riffs and melodic fills.',
+                  piano: 'Driving rhythmic chord accompaniment.',
                   other: 'Harmonic accompaniment.',
                 },
                 keyMoments: ['Climax drop'],
@@ -262,11 +294,20 @@ export default function App() {
                 harmonicTension: 25,
                 dynamics: 'low',
                 quantizationStrictness: 50,
-                stemRoles: { vocals: 'ornament', bass: 'foundation', drums: 'percussion', other: 'texture' },
+                stemRoles: {
+                  vocals: 'ornament',
+                  bass: 'foundation',
+                  drums: 'percussion',
+                  guitar: 'ornament',
+                  piano: 'texture',
+                  other: 'texture',
+                },
                 stemReasoning: {
                   vocals: 'Expressive ornaments and ad-libs.',
                   bass: 'Sustained root notes.',
                   drums: 'Sparse timekeeping.',
+                  guitar: 'Gentle acoustic fade-out strums.',
+                  piano: 'Sustained resolving chords.',
                   other: 'Decaying harmonic tails.',
                 },
                 keyMoments: ['Final resolution'],
@@ -540,10 +581,68 @@ export default function App() {
       setDuration(songDuration);
       setActiveSection(sections[0]);
       audioEngine.setSongData(songDuration, cleanedNotes, stemBuffers);
+      setStemBuffersState(stemBuffers);
+
+      // Automatically download the stemmed audio files as a zip when completed
+      try {
+        setProcessingMessage('Packaging & auto-downloading 6 lossless WAV stems + aligned MIDI into ZIP archive...');
+        const cleanSlug = (customMetadata.title || 'song').toLowerCase().replace(/[^a-z0-9]+/g, '_');
+        const { filename } = await downloadStemmedAudioZip(
+          stemBuffers,
+          customMetadata.title,
+          [
+            {
+              filename: `${cleanSlug}_aligned_multitrack.mid`,
+              data: generateMidiFile(cleanedNotes, estimatedBpm),
+            },
+            {
+              filename: `${cleanSlug}_analysis_summary.json`,
+              data: JSON.stringify(
+                {
+                  metadata: customMetadata,
+                  bpm: estimatedBpm,
+                  key: keyProfile.keyName,
+                  scaleType: keyProfile.scaleType,
+                  accuracy: accuracyProfile,
+                  stemSummaries,
+                },
+                null,
+                2
+              ),
+            },
+          ]
+        );
+        setAutoDownloadNotice(`✓ Stems package automatically downloaded: "${filename}"`);
+      } catch (zipError) {
+        console.warn('Auto stem zip download notice:', zipError);
+      }
     } catch (err) {
       console.error('Error processing custom audio:', err);
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  const handleManualZipDownload = async () => {
+    if (!stemBuffersState || !pipelineResult) return;
+    try {
+      setIsZipping(true);
+      const cleanSlug = (pipelineResult.metadata.title || 'song').toLowerCase().replace(/[^a-z0-9]+/g, '_');
+      const { filename } = await downloadStemmedAudioZip(
+        stemBuffersState,
+        pipelineResult.metadata.title,
+        [
+          {
+            filename: `${cleanSlug}_aligned_multitrack.mid`,
+            data: generateMidiFile(pipelineResult.cleanedMidiNotes, pipelineResult.metadata.bpm),
+          },
+        ]
+      );
+      setAutoDownloadNotice(`✓ Stems package re-downloaded: "${filename}"`);
+    } catch (err) {
+      console.error('Manual ZIP export failed:', err);
+    } finally {
+      setIsZipping(false);
     }
   };
 
@@ -700,6 +799,24 @@ export default function App() {
               </button>
               <button
                 type="button"
+                onClick={() => handleExportStemMidi('guitar')}
+                className="flex items-center gap-1 px-2 py-1 rounded bg-emerald-950/50 hover:bg-emerald-900/60 text-emerald-300 border border-emerald-700/50 text-[10px] font-mono transition"
+                title="Export Guitar MIDI (.mid)"
+              >
+                <Download className="w-3 h-3 text-emerald-400" />
+                <span>Guitar</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleExportStemMidi('piano')}
+                className="flex items-center gap-1 px-2 py-1 rounded bg-blue-950/50 hover:bg-blue-900/60 text-blue-300 border border-blue-700/50 text-[10px] font-mono transition"
+                title="Export Piano MIDI (.mid)"
+              >
+                <Download className="w-3 h-3 text-blue-400" />
+                <span>Piano</span>
+              </button>
+              <button
+                type="button"
                 onClick={() => handleExportStemMidi('other')}
                 className="flex items-center gap-1 px-2 py-1 rounded bg-purple-950/50 hover:bg-purple-900/60 text-purple-300 border border-purple-700/50 text-[10px] font-mono transition"
                 title="Export Other / Keys MIDI (.mid)"
@@ -707,6 +824,18 @@ export default function App() {
                 <Download className="w-3 h-3 text-purple-400" />
                 <span>Other</span>
               </button>
+
+              <button
+                type="button"
+                onClick={handleManualZipDownload}
+                disabled={isZipping || !stemBuffersState}
+                className="flex items-center gap-1 px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-[10px] font-mono shadow-sm transition border border-emerald-400 disabled:opacity-40"
+                title="Download 6 Stemmed Audio Lossless WAV Files + MIDI in a single ZIP"
+              >
+                <FileArchive className="w-3 h-3 text-emerald-100" />
+                <span>{isZipping ? 'Zipping...' : 'Stems (.ZIP)'}</span>
+              </button>
+
               <button
                 type="button"
                 onClick={() => handleExportStemMidi('all')}
@@ -736,6 +865,34 @@ export default function App() {
               >
                 <UploadCloud className="w-3 h-3 text-indigo-400" />
                 <span>{showAudioInput ? 'Hide Ingest' : '+ New Audio'}</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Automatic Stem ZIP Download Confirmation Notice */}
+        {pipelineResult && autoDownloadNotice && (
+          <div className="bg-emerald-950/40 border border-emerald-500/50 rounded-xl px-4 py-2.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 text-xs text-emerald-200 shadow-md">
+            <div className="flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span className="font-mono text-[11px] font-medium">{autoDownloadNotice}</span>
+            </div>
+            <div className="flex items-center gap-2 self-end sm:self-auto">
+              <button
+                type="button"
+                onClick={handleManualZipDownload}
+                disabled={isZipping || !stemBuffersState}
+                className="px-2.5 py-1 rounded bg-emerald-700/50 hover:bg-emerald-600/60 border border-emerald-400/60 text-white font-mono text-[10px] flex items-center gap-1.5 transition whitespace-nowrap"
+              >
+                <FileArchive className="w-3 h-3 text-emerald-200" />
+                <span>{isZipping ? 'Compressing...' : 'Re-download (.ZIP)'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setAutoDownloadNotice(null)}
+                className="text-[10px] font-mono text-emerald-400 hover:text-emerald-200 px-1"
+              >
+                ✕
               </button>
             </div>
           </div>
@@ -942,10 +1099,11 @@ export default function App() {
         </footer>
       </main>
 
-      {/* Export Standard MIDI File Modal */}
+      {/* Export Standard MIDI File & Stemmed Audio ZIP Modal */}
       {isExportOpen && (
         <ExportPanel
           pipelineResult={pipelineResult}
+          stemBuffers={stemBuffersState}
           onClose={() => setIsExportOpen(false)}
         />
       )}
