@@ -9,6 +9,7 @@ export type SectionLabel =
   | 'intro'
   | 'verse'
   | 'chorus'
+  | 'hook'
   | 'bridge'
   | 'drop'
   | 'outro'
@@ -258,6 +259,7 @@ export interface SongPipelineResult {
   automationLanes?: Record<StemType, AutomationLaneData[]>;
   accuracyProfile?: TranscriptionAccuracyProfile;
   collisionAuditLogs?: CollisionResolutionLog[];
+  detectedSubgenre?: 'boom_bap' | 'drill' | 'trap' | 'spoken_word' | 'hybrid';
   geminiExecutiveSummary: string;
   arrangementCritique: string;
   mixRecommendations: string[];

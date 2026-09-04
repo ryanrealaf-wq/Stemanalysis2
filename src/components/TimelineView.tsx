@@ -72,6 +72,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
       case 'drop':
         return 'bg-rose-950/40 border-rose-700/60 text-rose-300';
       case 'chorus':
+      case 'hook':
         return 'bg-indigo-950/40 border-indigo-500/60 text-indigo-300';
       case 'verse':
         return 'bg-blue-950/30 border-blue-700/50 text-blue-300';

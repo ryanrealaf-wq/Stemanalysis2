@@ -43,14 +43,14 @@ const PIPELINE_STEPS: PipelineStep[] = [
   },
   {
     id: 3,
-    title: 'DSP Feature Extraction',
-    shortDesc: 'Energy RMS, Spectral Centroid, Onset Density & Correlation',
+    title: 'Serialization & Collision Audit',
+    shortDesc: 'STFT F0 salience (≥6dB), centroid (<250Hz) & onset slope re-audit',
     icon: Activity,
-    techBadge: '4D Time-Series DSP',
+    techBadge: 'Deterministic Collision Pass',
   },
   {
     id: 4,
-    title: 'Gemini Functional Analysis',
+    title: 'Gemini LLM Orchestration',
     shortDesc: 'Section segmentation, stem role tagging & musical reasoning',
     icon: Brain,
     techBadge: 'Gemini 3.7 Flash',

@@ -331,7 +331,7 @@ export function AccuracyMetricsPanel({ pipelineResult }: AccuracyMetricsPanelPro
               <span className="text-[10px] text-slate-500">&lt;250 Hz Low-Pass</span>
             </div>
             <p className="text-[11px] text-slate-400">
-              If $p &lt; C_3$ (130.81 Hz) and low-band concentration &gt; 70%, forces assignment to Bass and purges duplicate from Other.
+              If p &lt; C₃ (130.81 Hz) and low-band concentration &gt; 70%, forces assignment to Bass and purges duplicate from Other.
             </p>
           </div>
 
@@ -341,7 +341,7 @@ export function AccuracyMetricsPanel({ pipelineResult }: AccuracyMetricsPanelPro
               <span className="text-[10px] text-slate-500">dA/dt Attack</span>
             </div>
             <p className="text-[11px] text-slate-400">
-              Evaluates amplitude envelope derivative at onset $t_{'{start}'}$. Steeper, coherent transient retains onset ownership.
+              Evaluates amplitude envelope derivative dA/dt at onset t_start across a 15 ms window. Steeper, coherent transient retains onset ownership.
             </p>
           </div>
         </div>

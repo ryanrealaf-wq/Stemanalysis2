@@ -644,6 +644,7 @@ export default function App() {
           collisionPurgedCount: collisionLogs.length,
         },
         collisionAuditLogs: collisionLogs,
+        detectedSubgenre: geminiResult?.detectedSubgenre,
         geminiExecutiveSummary:
           geminiResult?.geminiExecutiveSummary ||
           `Analyzed "${file.name}". Bass provides monophonic root foundation, Drums provide dynamic groove, Vocals lead melodic phrasing, and Other supplies harmonic texture.`,

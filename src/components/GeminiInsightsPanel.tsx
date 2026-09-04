@@ -105,9 +105,16 @@ export const GeminiInsightsPanel: React.FC<GeminiInsightsPanelProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#0A0B0E] border border-[#2D3139] text-indigo-400 text-[10px] font-mono uppercase">
-            <Sparkles className="w-3 h-3" />
-            <span>AI Studio Reasoning Engine</span>
+          <div className="flex items-center gap-2">
+            {pipelineResult.detectedSubgenre && (
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[10px] font-mono uppercase font-bold">
+                <span>Subgenre: {pipelineResult.detectedSubgenre.replace('_', ' ')}</span>
+              </div>
+            )}
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#0A0B0E] border border-[#2D3139] text-indigo-400 text-[10px] font-mono uppercase">
+              <Sparkles className="w-3 h-3" />
+              <span>AI Studio Reasoning Engine</span>
+            </div>
           </div>
         </div>
 
