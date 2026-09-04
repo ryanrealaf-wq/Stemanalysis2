@@ -50,22 +50,19 @@ export function audioBufferToWav(buffer: AudioBuffer): Uint8Array {
   writeString(36, 'data');
   view.setUint32(40, dataByteLength, true);
 
-  // Interleave and write 16-bit PCM samples
+  // Interleave and write 16-bit PCM samples with high-speed Int16Array buffer
   const channelData: Float32Array[] = [];
   for (let ch = 0; ch < numChannels; ch++) {
     channelData.push(buffer.getChannelData(ch));
   }
 
-  let offset = 44;
+  const int16View = new Int16Array(outBuffer, 44, numSamples * numChannels);
+  let p = 0;
   for (let i = 0; i < numSamples; i++) {
     for (let ch = 0; ch < numChannels; ch++) {
-      const sample = channelData[ch][i];
-      // Hard clamp between -1.0 and 1.0 to prevent 16-bit integer wrap-around distortion
-      const clamped = Math.max(-1, Math.min(1, sample));
-      // Scale to 16-bit signed integer (-32768 to 32767)
-      const intSample = clamped < 0 ? clamped * 0x8000 : clamped * 0x7fff;
-      view.setInt16(offset, Math.floor(intSample), true);
-      offset += 2;
+      const s = channelData[ch][i];
+      const clamped = s < -1 ? -1 : s > 1 ? 1 : s;
+      int16View[p++] = clamped < 0 ? clamped * 0x8000 : clamped * 0x7fff;
     }
   }
 
@@ -79,6 +76,7 @@ export interface ExtraZipFile {
 
 /**
  * Compiles separated audio stems into a compressed ZIP file using JSZip.
+ * Uses STORE compression for instantaneous bundling without CPU/memory lockup.
  */
 export async function createStemmedAudioZip(
   stemBuffers: Record<StemType, AudioBuffer>,
@@ -133,23 +131,37 @@ Ready to drag & drop into any Digital Audio Workstation (Ableton Live, FL Studio
 
   return await zip.generateAsync({
     type: 'blob',
-    compression: 'DEFLATE',
-    compressionOptions: { level: 6 },
+    compression: 'STORE',
   });
 }
 
 /**
- * Triggers an immediate browser download for a Blob file.
+ * Triggers an immediate browser download for a Blob file with safety guards against iframe sandbox errors.
  */
-export function triggerBlobDownload(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 5000);
+export function triggerBlobDownload(blob: Blob, filename: string): boolean {
+  try {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      try {
+        if (a.parentNode) {
+          document.body.removeChild(a);
+        }
+        URL.revokeObjectURL(url);
+      } catch {
+        // silent cleanup guard
+      }
+    }, 1500);
+    return true;
+  } catch (err) {
+    console.warn('Browser sandbox or download policy prevented direct auto-download:', err);
+    return false;
+  }
 }
 
 /**

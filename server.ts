@@ -33,14 +33,19 @@ async function startServer() {
   // API Route: Gemini Functional Analysis
   app.post('/api/analyze-song', async (req, res) => {
     try {
-      const { metadata, stemFeatures, correlations } = req.body;
+      const { metadata, stemFeatures, correlations, collisionTelemetry } = req.body;
 
       if (!metadata || !stemFeatures) {
         return res.status(400).json({ error: 'Missing required song metadata or stem features payload.' });
       }
 
       console.log(`[API] Processing Gemini functional analysis for "${metadata.title}" (${metadata.duration}s)...`);
-      const analysisResult = await runGeminiFunctionalAnalysis(metadata, stemFeatures, correlations || []);
+      const analysisResult = await runGeminiFunctionalAnalysis(
+        metadata,
+        stemFeatures,
+        correlations || [],
+        Array.isArray(collisionTelemetry) ? collisionTelemetry : []
+      );
 
       return res.json({
         success: true,

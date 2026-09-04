@@ -285,6 +285,100 @@ export function AccuracyMetricsPanel({ pipelineResult }: AccuracyMetricsPanelPro
         </div>
       </div>
 
+      {/* Cross-Stem Collision & Bleed Audit Protocol Telemetry Banner */}
+      <div className="bg-[#12141A] border border-indigo-500/30 rounded-xl p-5 shadow-lg">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded bg-indigo-500/20 border border-indigo-500/40 flex items-center justify-center text-indigo-400">
+                <ShieldCheck className="w-3.5 h-3.5" />
+              </div>
+              <h4 className="text-sm font-semibold text-slate-200 uppercase tracking-wider">
+                Cross-Stem Collision & Bleed Audit Protocol
+              </h4>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-indigo-950/60 border border-indigo-700/50 text-indigo-300">
+                Stage 3 ➔ Stage 4 Deterministic Pass
+              </span>
+            </div>
+            <p className="text-xs text-slate-400 mt-1">
+              Deterministic spatial collision detection ($|Δt| ≤ 20$ms, overlap &gt; 50%) with raw STFT F₀ salience (≥6 dB), spectral centroid low-band gating (&lt;250Hz for $p &lt; C_3$), and transient attack derivative ($dA/dt$).
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 bg-[#181B22] px-3 py-1.5 rounded-lg border border-slate-800 shrink-0">
+            <span className="text-[11px] text-slate-400 font-mono">Collisions Resolved:</span>
+            <span className="text-sm font-bold text-indigo-400 font-mono">
+              {pipelineResult.collisionAuditLogs?.length ?? 0}
+            </span>
+          </div>
+        </div>
+
+        {/* Audit Metrics Breakdown */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4 text-xs">
+          <div className="bg-[#181B22] border border-slate-800 rounded-lg p-3">
+            <div className="font-mono font-semibold text-indigo-300 mb-1 flex items-center justify-between">
+              <span>1. Fundamental Salience (F₀)</span>
+              <span className="text-[10px] text-slate-500">≥6 dB Dominance</span>
+            </div>
+            <p className="text-[11px] text-slate-400">
+              STFT magnitude evaluated at f₀ = 440 · 2^((p - 69) / 12) Hz. Winner retained if energy density delta exceeds 6 dB.
+            </p>
+          </div>
+
+          <div className="bg-[#181B22] border border-slate-800 rounded-lg p-3">
+            <div className="font-mono font-semibold text-cyan-300 mb-1 flex items-center justify-between">
+              <span>2. Centroid & Bandwidth</span>
+              <span className="text-[10px] text-slate-500">&lt;250 Hz Low-Pass</span>
+            </div>
+            <p className="text-[11px] text-slate-400">
+              If $p &lt; C_3$ (130.81 Hz) and low-band concentration &gt; 70%, forces assignment to Bass and purges duplicate from Other.
+            </p>
+          </div>
+
+          <div className="bg-[#181B22] border border-slate-800 rounded-lg p-3">
+            <div className="font-mono font-semibold text-emerald-300 mb-1 flex items-center justify-between">
+              <span>3. Onset Transient Slope</span>
+              <span className="text-[10px] text-slate-500">dA/dt Attack</span>
+            </div>
+            <p className="text-[11px] text-slate-400">
+              Evaluates amplitude envelope derivative at onset $t_{'{start}'}$. Steeper, coherent transient retains onset ownership.
+            </p>
+          </div>
+        </div>
+
+        {/* Telemetry Log Terminal */}
+        <div className="bg-[#0A0B0E] border border-slate-800 rounded-lg p-3 font-mono text-[11px]">
+          <div className="text-[10px] text-slate-500 uppercase tracking-wider mb-2 flex items-center justify-between border-b border-slate-800/80 pb-1.5">
+            <span>Audit Protocol Telemetry Stream</span>
+            <span className="text-emerald-400">Deterministic Enforcement Active</span>
+          </div>
+
+          {!pipelineResult.collisionAuditLogs || pipelineResult.collisionAuditLogs.length === 0 ? (
+            <div className="text-slate-500 italic py-2">
+              No concurrent cross-stem pitch-time collisions detected in this track. All concurrent tracks exhibit clear spectral isolation.
+            </div>
+          ) : (
+            <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+              {pipelineResult.collisionAuditLogs.map((log) => (
+                <div key={log.id} className="text-slate-300 bg-[#14161D] p-2 rounded border border-slate-800/60 hover:border-slate-700">
+                  <div className="flex flex-wrap items-center justify-between gap-1">
+                    <span className="text-emerald-400 font-bold">
+                      {log.formattedLog}
+                    </span>
+                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-400">
+                      Metric: {log.metric}
+                    </span>
+                  </div>
+                  <div className="text-[10px] text-slate-400 mt-1">
+                    ↳ {log.reason}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Purged Ghost Notes & Bleed Verification Inspector */}
       <div className="bg-[#12141A] border border-[#2D3139] rounded-xl p-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">

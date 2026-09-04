@@ -198,8 +198,8 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
                 <div className="flex-1 flex h-full gap-1 relative">
                   {sections.map((sec) => {
                     const widthPct = ((sec.endTime - sec.startTime) / totalDuration) * 100;
-                    const role = sec.stemRoles[stem] || 'silent';
-                    const roleReasoning = sec.stemReasoning[stem] || '';
+                    const role = sec.stemRoles?.[stem] || 'silent';
+                    const roleReasoning = sec.stemReasoning?.[stem] || '';
                     const isSecSelected = activeSection?.id === sec.id;
 
                     return (
@@ -265,21 +265,25 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-            {stemsList.map((s) => (
-              <div key={s.type} className="p-2 rounded bg-[#15171C] border border-[#2D3139] text-left">
-                <div className="flex items-center justify-between mb-1">
-                  <span className={`text-[10px] font-bold font-mono ${s.color}`}>
-                    {s.label}
-                  </span>
-                  <span className={`text-[9px] uppercase font-mono px-1.5 py-0.2 rounded border ${getRoleColor(activeSection.stemRoles[s.type] || 'silent')}`}>
-                    {activeSection.stemRoles[s.type] || 'silent'}
-                  </span>
+            {stemsList.map((s) => {
+              const role = activeSection.stemRoles?.[s.type] || 'silent';
+              const reasoning = activeSection.stemReasoning?.[s.type] || 'Standard functional attribution.';
+              return (
+                <div key={s.type} className="p-2 rounded bg-[#15171C] border border-[#2D3139] text-left">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className={`text-[10px] font-bold font-mono ${s.color}`}>
+                      {s.label}
+                    </span>
+                    <span className={`text-[9px] uppercase font-mono px-1.5 py-0.2 rounded border ${getRoleColor(role)}`}>
+                      {role}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-slate-400 leading-tight line-clamp-2">
+                    {reasoning}
+                  </p>
                 </div>
-                <p className="text-[10px] text-slate-400 leading-tight line-clamp-2">
-                  {activeSection.stemReasoning[s.type] || 'Standard functional attribution.'}
-                </p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}

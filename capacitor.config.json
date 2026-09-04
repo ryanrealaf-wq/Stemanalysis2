@@ -1,0 +1,6 @@
+{
+  "appId": "com.stemflow.ai",
+  "appName": "StemFlow AI",
+  "webDir": "dist",
+  "bundledWebRuntime": false
+}

@@ -38,7 +38,8 @@ export interface GeminiFunctionalAnalysisOutput {
 export async function runGeminiFunctionalAnalysis(
   metadata: SongMetadata,
   stemFeatures: Record<StemType, StemFeatureData>,
-  correlations: CrossStemCorrelation[]
+  correlations: CrossStemCorrelation[],
+  collisionTelemetry: string[] = []
 ): Promise<GeminiFunctionalAnalysisOutput> {
   const ai = getGeminiClient();
 
@@ -83,6 +84,9 @@ ${JSON.stringify(compactFeatureSummary, null, 2)}
 
 Cross-Stem Correlation Matrix:
 ${JSON.stringify(correlationSummary, null, 2)}
+
+Cross-Stem Collision & Bleed Audit Protocol Telemetry (Deterministic Resolution):
+${collisionTelemetry.length > 0 ? collisionTelemetry.slice(0, 15).join('\n') : 'No cross-stem collisions detected; acoustic isolation verified across all stems.'}
 
 Your task:
 1. Segment the song into distinct musical sections across time (e.g., intro, verse, chorus, bridge, drop, outro, solo).

@@ -12,23 +12,24 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-            - name: Setup Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
 
-      - name: Clear npm cache
-        run: npm cache clean --force
-
       - name: Install Dependencies
-        run: npm ci
+        run: npm install
 
       - name: Build Web Assets
         run: npm run build
 
-      - name: Sync Capacitor Android
-        run: npx cap sync android
+      - name: Ensure Android Platform Exists
+        run: |
+          if [ ! -d "android" ]; then
+            npx cap add android
+          fi
+          npx cap sync android
 
       - name: Setup Java JDK
         uses: actions/setup-java@v4
@@ -49,4 +50,3 @@ jobs:
         with:
           name: app-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
-          

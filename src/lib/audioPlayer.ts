@@ -55,11 +55,15 @@ class AudioEngine {
       for (const s of stems) {
         const gain = this.ctx.createGain();
         gain.gain.value = 0.8;
-        const panner = this.ctx.createStereoPanner();
-        gain.connect(panner);
-        panner.connect(this.masterGain);
+        if (typeof this.ctx.createStereoPanner === 'function') {
+          const panner = this.ctx.createStereoPanner();
+          gain.connect(panner);
+          panner.connect(this.masterGain);
+          this.stemPanners[s] = panner;
+        } else {
+          gain.connect(this.masterGain);
+        }
         this.stemGains[s] = gain;
-        this.stemPanners[s] = panner;
       }
     }
     if (this.ctx.state === 'suspended') {

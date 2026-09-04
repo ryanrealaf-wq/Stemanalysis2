@@ -82,6 +82,23 @@ export type DrumArticulationType =
 
 export type AuditionMode = 'audio_only' | 'synth_only' | 'hybrid_unison';
 
+export interface CollisionResolutionLog {
+  id: string;
+  timestampSec: number;
+  pitch: number;
+  noteName: string;
+  stemA: StemType;
+  stemB: StemType;
+  retainedStem: StemType;
+  prunedStem: StemType;
+  deltaEnergyDb: number;
+  salienceA: number;
+  salienceB: number;
+  reason: string;
+  metric: 'fundamental_salience_6db' | 'spectral_centroid_bandwidth' | 'onset_transient_slope';
+  formattedLog: string;
+}
+
 export interface TranscriptionAccuracyProfile {
   pitchAccuracyScore: number; // 0-100%
   transientTimingPrecisionMs: number; // e.g. 1.8ms
@@ -91,6 +108,7 @@ export interface TranscriptionAccuracyProfile {
   validCleanedNotes: number;
   bleedPurgedCount: number;
   centsDetuningRms: number; // e.g. 2.4 cents
+  collisionPurgedCount?: number;
   algorithmPipeline: {
     bass: string;
     vocals: string;
@@ -239,6 +257,7 @@ export interface SongPipelineResult {
   chords?: ChordSegment[];
   automationLanes?: Record<StemType, AutomationLaneData[]>;
   accuracyProfile?: TranscriptionAccuracyProfile;
+  collisionAuditLogs?: CollisionResolutionLog[];
   geminiExecutiveSummary: string;
   arrangementCritique: string;
   mixRecommendations: string[];
