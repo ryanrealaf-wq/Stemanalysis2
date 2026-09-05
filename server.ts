@@ -5,6 +5,7 @@
 
 import express from 'express';
 import path from 'path';
+import fs from 'fs';
 import dotenv from 'dotenv';
 import { createServer as createViteServer } from 'vite';
 import { runGeminiFunctionalAnalysis } from './server/geminiService';
@@ -77,6 +78,49 @@ async function startServer() {
         ornaments: 'Expressive Unquantized Human Micro-timing Engine',
       },
       aiIntelligence: 'Gemini 3.7 Flash Backend (Arrangement & Section Analysis)',
+    });
+  });
+
+  // API Route: Download Packaged Android APK
+  app.get('/api/download-apk', (req, res) => {
+    const apkCandidatePaths = [
+      path.join(process.cwd(), 'android/app/build/outputs/apk/debug/app-debug.apk'),
+      path.join(process.cwd(), 'dist/stemflow-ai.apk'),
+      path.join(process.cwd(), 'public/stemflow-ai.apk'),
+    ];
+
+    for (const p of apkCandidatePaths) {
+      if (fs.existsSync(p)) {
+        res.setHeader('Content-Type', 'application/vnd.android.package-archive');
+        res.setHeader('Content-Disposition', 'attachment; filename="stemflow-ai.apk"');
+        return res.sendFile(p);
+      }
+    }
+    return res.status(404).json({ error: 'Android APK has not been packaged yet.' });
+  });
+
+  // API Route: Android Packaging Metadata
+  app.get('/api/apk-info', (req, res) => {
+    const apkPath = path.join(process.cwd(), 'android/app/build/outputs/apk/debug/app-debug.apk');
+    if (fs.existsSync(apkPath)) {
+      const stats = fs.statSync(apkPath);
+      return res.json({
+        available: true,
+        filename: 'stemflow-ai.apk',
+        packageName: 'com.stemflow.ai',
+        version: '1.0',
+        versionCode: 1,
+        targetSdkVersion: 36,
+        minSdkVersion: 24,
+        sizeBytes: stats.size,
+        sizeMB: (stats.size / (1024 * 1024)).toFixed(2),
+        builtAt: stats.mtime.toISOString(),
+        downloadUrl: '/api/download-apk',
+      });
+    }
+    return res.json({
+      available: false,
+      message: 'APK build in progress or not available.',
     });
   });
 

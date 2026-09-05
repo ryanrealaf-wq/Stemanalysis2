@@ -15,6 +15,7 @@ import {
   Music2,
   Volume2,
   VolumeX,
+  Smartphone,
 } from 'lucide-react';
 import { SongPipelineResult } from '../types';
 
@@ -76,13 +77,24 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
-          {/* Quick Track Select button on mobile */}
-          <button
-            onClick={onSelectTrackModal}
-            className="md:hidden px-2.5 py-1 rounded bg-[#1A1D24] text-[10px] font-mono text-slate-300 border border-[#2D3139] hover:bg-slate-800 transition uppercase tracking-wider"
-          >
-            Upload Audio
-          </button>
+          <div className="flex items-center gap-1.5 md:hidden">
+            <a
+              href="/api/download-apk"
+              download="stemflow-ai.apk"
+              className="px-2 py-1 rounded bg-emerald-950/40 text-[10px] font-mono text-emerald-300 border border-emerald-700/50 hover:bg-emerald-900/60 transition uppercase tracking-wider flex items-center gap-1"
+              title="Download Android APK"
+            >
+              <Smartphone className="w-3 h-3 text-emerald-400" />
+              <span>APK</span>
+            </a>
+            {/* Quick Track Select button on mobile */}
+            <button
+              onClick={onSelectTrackModal}
+              className="px-2.5 py-1 rounded bg-[#1A1D24] text-[10px] font-mono text-slate-300 border border-[#2D3139] hover:bg-slate-800 transition uppercase tracking-wider"
+            >
+              Upload Audio
+            </button>
+          </div>
         </div>
 
         {/* Center Transport & Track Telemetry */}
@@ -162,6 +174,16 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Right Action Bar */}
         <div className="hidden md:flex items-center gap-2">
+          <a
+            href="/api/download-apk"
+            download="stemflow-ai.apk"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-emerald-950/40 text-xs font-mono uppercase tracking-wider text-emerald-300 border border-emerald-700/50 hover:bg-emerald-900/60 hover:text-emerald-200 transition"
+            title="Download Packaged Android APK (com.stemflow.ai)"
+          >
+            <Smartphone className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Android APK</span>
+          </a>
+
           <button
             onClick={onSelectTrackModal}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#1A1D24] text-xs font-mono uppercase tracking-wider text-slate-300 border border-[#2D3139] hover:bg-[#2D3139] hover:text-white transition"

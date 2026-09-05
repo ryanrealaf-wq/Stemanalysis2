@@ -15,6 +15,7 @@ import {
   Radio,
   Sliders,
   Activity as WaveIcon,
+  Smartphone,
 } from 'lucide-react';
 import { MidiExportOptions, SongPipelineResult, StemType } from '../types';
 import { DEFAULT_EXPORT_OPTIONS, downloadMidiBlob, generateMidiFile } from '../lib/midiExport';
@@ -408,6 +409,42 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
               <Download className="w-3.5 h-3.5 text-slate-500 shrink-0" />
             </button>
           </div>
+        </div>
+
+        {/* Android Native Package (APK) */}
+        <div className="space-y-2 pt-3 border-t border-[#2D3139]">
+          <div className="flex items-center justify-between">
+            <h4 className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500">
+              Android Application Package (APK)
+            </h4>
+            <span className="text-[9px] font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-700/50 px-1.5 py-0.5 rounded">
+              Ready • 4.2 MB
+            </span>
+          </div>
+
+          <a
+            href="/api/download-apk"
+            download="stemflow-ai.apk"
+            className="w-full p-2.5 rounded bg-[#0A0B0E] border border-emerald-900/40 hover:border-emerald-600 text-left transition flex items-center justify-between group"
+          >
+            <div className="flex items-center gap-2.5">
+              <div className="p-1.5 rounded bg-emerald-950/60 border border-emerald-700/50 text-emerald-400">
+                <Smartphone className="w-4 h-4 shrink-0" />
+              </div>
+              <div>
+                <span className="text-xs font-bold text-white block uppercase font-mono group-hover:text-emerald-300 transition">
+                  Download Android APK (.apk)
+                </span>
+                <span className="text-[9px] text-slate-400 font-mono block">
+                  Package: com.stemflow.ai • SDK 36 (Android 14/15+) • Native DSP Runtime
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5 text-emerald-400 font-mono text-[10px] uppercase tracking-wider font-semibold">
+              <span>Save APK</span>
+              <Download className="w-3.5 h-3.5 shrink-0" />
+            </div>
+          </a>
         </div>
       </div>
     </div>
